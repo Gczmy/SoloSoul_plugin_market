@@ -52,6 +52,8 @@ cargo build --target wasm32-wasi --release
 ```
 SoloSoul_plugin_market/
 ├── README.md                          # 本文档
+├── docs/
+│   └── plugin-ideas.md                # 插件创意库（官方/第三方插件开发参考）
 ├── SDK/                               # 插件开发 SDK
 │   ├── rust/                          # Rust SDK（Host Functions 绑定）
 │   ├── typescript/                    # AssemblyScript SDK（预留）
