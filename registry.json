@@ -1,6 +1,6 @@
 {
   "version": "1",
-  "updated_at": "2026-05-23T23:54:48Z",
+  "updated_at": "2026-05-23T23:58:32Z",
   "plugins": {
     "com.solosoul.official.expiry-guardian": {
       "name": "Expiry Guardian",
