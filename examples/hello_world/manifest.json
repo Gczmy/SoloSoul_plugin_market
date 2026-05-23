@@ -1,0 +1,18 @@
+{
+  "plugin_id": "com.solosoul.examples.hello_world",
+  "name": "Hello World",
+  "version": "0.1.0",
+  "plugin_api_version": "1.0",
+  "min_app_version": "1.0.0",
+  "max_app_version": "999.999.999",
+  "description": "SoloSoul 插件系统的最小可运行示例，仅调用 get_timestamp 和 log",
+  "publisher": "SoloSoul Team",
+  "required_fields": [],
+  "optional_fields": [],
+  "network_policy": {
+    "block_all_outbound": true,
+    "allowed_domains": []
+  },
+  "data_ttl_seconds": 300,
+  "require_user_confirmation": false
+}

@@ -1,0 +1,10 @@
+[package]
+name = "hello_world"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+solosoul-plugin-sdk = { path = "../../SDK/rust" }
+
+[lib]
+crate-type = ["cdylib"]

@@ -1,0 +1,134 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://plugins.solosoul.dev/schema/manifest.schema.json",
+  "title": "SoloSoul Plugin Manifest",
+  "description": "插件清单规范，每个插件必须包含 manifest.json",
+  "type": "object",
+  "required": [
+    "plugin_id",
+    "name",
+    "version",
+    "plugin_api_version",
+    "min_app_version",
+    "max_app_version",
+    "description",
+    "publisher",
+    "required_fields"
+  ],
+  "properties": {
+    "plugin_id": {
+      "type": "string",
+      "description": "反向域名格式，全局唯一标识",
+      "pattern": "^[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)+$",
+      "examples": ["com.solosoul.slotgo"]
+    },
+    "name": {
+      "type": "string",
+      "description": "插件显示名称",
+      "minLength": 1,
+      "maxLength": 64
+    },
+    "version": {
+      "type": "string",
+      "description": "SemVer 格式",
+      "pattern": "^(0|[1-9]\\d*)\\.(0|[1-9]\\d*)\\.(0|[1-9]\\d*)(?:-([a-zA-Z0-9-]+(?:\\.[a-zA-Z0-9-]+)*))?(?:\\+([a-zA-Z0-9-]+(?:\\.[a-zA-Z0-9-]+)*))?$"
+    },
+    "plugin_api_version": {
+      "type": "string",
+      "description": "插件 ABI 版本，与主软件严格匹配",
+      "pattern": "^(0|[1-9]\\d*)\\.(0|[1-9]\\d*)$",
+      "examples": ["1.0"]
+    },
+    "min_app_version": {
+      "type": "string",
+      "description": "兼容的最低 SoloSoul App 版本",
+      "pattern": "^(0|[1-9]\\d*)\\.(0|[1-9]\\d*)\\.(0|[1-9]\\d*)$"
+    },
+    "max_app_version": {
+      "type": "string",
+      "description": "兼容的最高 SoloSoul App 版本",
+      "pattern": "^(0|[1-9]\\d*)\\.(0|[1-9]\\d*)\\.(0|[1-9]\\d*)$"
+    },
+    "description": {
+      "type": "string",
+      "description": "一句话描述插件功能",
+      "minLength": 1,
+      "maxLength": 256
+    },
+    "publisher": {
+      "type": "string",
+      "description": "发布者名称",
+      "minLength": 1,
+      "maxLength": 64
+    },
+    "homepage": {
+      "type": "string",
+      "description": "项目主页 URL",
+      "format": "uri"
+    },
+    "signature": {
+      "type": "string",
+      "description": "Ed25519 签名（Release 模式强制校验）"
+    },
+    "required_fields": {
+      "type": "array",
+      "description": "插件必需的字段路径列表",
+      "minItems": 1,
+      "items": {
+        "type": "string",
+        "description": "UnifiedObject 字段路径，支持通配符",
+        "examples": [
+          "identity.full_name",
+          "travel.*"
+        ]
+      }
+    },
+    "optional_fields": {
+      "type": "array",
+      "description": "可选字段路径列表",
+      "items": {
+        "type": "string"
+      }
+    },
+    "network_policy": {
+      "type": "object",
+      "description": "网络白名单策略",
+      "required": ["block_all_outbound", "allowed_domains"],
+      "properties": {
+        "block_all_outbound": {
+          "type": "boolean",
+          "description": "是否阻止所有出站访问（默认 true）",
+          "default": true
+        },
+        "allowed_domains": {
+          "type": "array",
+          "description": "允许的域名列表，支持通配符",
+          "items": {
+            "type": "string",
+            "examples": ["*.solosoul.dev", "api.example.com"]
+          }
+        }
+      }
+    },
+    "data_ttl_seconds": {
+      "type": "integer",
+      "description": "敏感数据内存存活时间（秒）",
+      "minimum": 30,
+      "maximum": 3600,
+      "default": 300
+    },
+    "require_user_confirmation": {
+      "type": "boolean",
+      "description": "是否要求用户逐字段确认",
+      "default": true
+    },
+    "consent_validity_hours": {
+      "type": "integer",
+      "description": "授权有效期（小时）",
+      "minimum": 1,
+      "maximum": 168,
+      "default": 24
+    }
+  },
+  "additionalProperties": false
+}

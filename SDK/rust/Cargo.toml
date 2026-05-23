@@ -1,0 +1,11 @@
+[package]
+name = "solosoul-plugin-sdk"
+version = "0.1.0"
+edition = "2021"
+authors = ["SoloSoul"]
+description = "SoloSoul Plugin SDK - Rust SDK for writing SoloSoul plugins"
+
+[dependencies]
+
+[lib]
+crate-type = ["cdylib", "rlib"]
