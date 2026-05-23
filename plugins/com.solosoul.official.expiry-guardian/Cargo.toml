@@ -1,0 +1,12 @@
+[package]
+name = "expiry-guardian"
+version = "1.0.0"
+edition = "2021"
+authors = ["SoloSoul Official"]
+description = "Expiry Guardian — Scan all documents and warn about upcoming expirations"
+
+[dependencies]
+solosoul-plugin-sdk = { path = "../../SDK/rust" }
+
+[lib]
+crate-type = ["cdylib"]

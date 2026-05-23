@@ -1,0 +1,24 @@
+{
+  "plugin_id": "com.solosoul.official.expiry-guardian",
+  "name": "Expiry Guardian",
+  "version": "1.0.0",
+  "plugin_api_version": "1.0",
+  "min_app_version": "1.0.0",
+  "max_app_version": "999.999.999",
+  "description": "证件到期卫士 — 扫描所有证件有效期并预警",
+  "publisher": "SoloSoul Official",
+  "homepage": "https://github.com/Gczmy/SoloSoul_plugin_market/tree/main/plugins/com.solosoul.official.expiry-guardian",
+  "required_fields": [
+    "passport.expiryDate",
+    "idCard.expiryDate"
+  ],
+  "optional_fields": [
+    "visa.expiryDate",
+    "card.expiryDate"
+  ],
+  "network_policy": {
+    "block_all_outbound": true
+  },
+  "data_ttl_seconds": 60,
+  "require_user_confirmation": false
+}
