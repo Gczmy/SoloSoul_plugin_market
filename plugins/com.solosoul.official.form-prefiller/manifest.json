@@ -1,0 +1,39 @@
+{
+  "plugin_id": "com.solosoul.official.form-prefiller",
+  "name": "Form Prefiller",
+  "version": "1.0.0",
+  "plugin_api_version": "1.0",
+  "min_app_version": "1.0.0",
+  "max_app_version": "999.999.999",
+  "description": "表单预填助手 — 根据签证/酒店/银行/航空等场景生成 Vault 字段映射表",
+  "publisher": "SoloSoul Official",
+  "homepage": "https://github.com/Gczmy/SoloSoul_plugin_market/tree/main/plugins/com.solosoul.official.form-prefiller",
+  "required_fields": [
+    "formPrefiller.scenario"
+  ],
+  "optional_fields": [
+    "identity.fullName",
+    "identity.dateOfBirth",
+    "identity.nationality",
+    "identity.sex",
+    "passport.number",
+    "passport.expiryDate",
+    "passport.dateOfBirth",
+    "passport.placeOfBirth",
+    "passport.issuingAuthority",
+    "contact.email",
+    "contact.phone",
+    "address.street",
+    "address.city",
+    "address.state",
+    "address.postalCode",
+    "address.country",
+    "employment.company",
+    "employment.position"
+  ],
+  "network_policy": {
+    "block_all_outbound": true
+  },
+  "data_ttl_seconds": 60,
+  "require_user_confirmation": false
+}
