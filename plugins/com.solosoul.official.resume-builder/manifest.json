@@ -1,0 +1,39 @@
+{
+  "plugin_id": "com.solosoul.official.resume-builder",
+  "name": "Resume Builder",
+  "version": "1.0.0",
+  "plugin_api_version": "1.0",
+  "min_app_version": "1.0.0",
+  "max_app_version": "999.999.999",
+  "description": "简历生成器 — 从 Vault 档案生成标准 Markdown 格式简历",
+  "publisher": "SoloSoul Official",
+  "homepage": "https://github.com/Gczmy/SoloSoul_plugin_market/tree/main/plugins/com.solosoul.official.resume-builder",
+  "required_fields": [
+    "identity.fullName"
+  ],
+  "optional_fields": [
+    "identity.email",
+    "identity.phone",
+    "identity.address",
+    "identity.website",
+    "identity.linkedin",
+    "employment.company",
+    "employment.position",
+    "employment.startDate",
+    "employment.endDate",
+    "employment.description",
+    "education.institution",
+    "education.degree",
+    "education.field",
+    "education.year",
+    "skill.primary",
+    "skill.secondary",
+    "language.native",
+    "language.others"
+  ],
+  "network_policy": {
+    "block_all_outbound": true
+  },
+  "data_ttl_seconds": 60,
+  "require_user_confirmation": false
+}
