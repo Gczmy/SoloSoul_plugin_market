@@ -1,0 +1,12 @@
+[package]
+name = "travel-footprint"
+version = "1.0.0"
+edition = "2021"
+authors = ["SoloSoul Official"]
+description = "Travel Footprint — Analyze travel history and generate country visit statistics"
+
+[dependencies]
+solosoul-plugin-sdk = { path = "../../SDK/rust" }
+
+[lib]
+crate-type = ["cdylib"]
