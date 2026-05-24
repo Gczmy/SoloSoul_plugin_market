@@ -1,6 +1,6 @@
 {
   "version": "1",
-  "updated_at": "2026-05-24T00:37:00Z",
+  "updated_at": "2026-05-24T00:38:31Z",
   "plugins": {
     "com.solosoul.official.address-fmt": {
       "name": "Address Formatter",
@@ -31,6 +31,22 @@
           "download_url": "https://cdn.jsdelivr.net/gh/Gczmy/SoloSoul_plugin_market@main/plugins/com.solosoul.official.calendar-events/plugin.wasm",
           "raw_url": "https://raw.githubusercontent.com/Gczmy/SoloSoul_plugin_market/main/plugins/com.solosoul.official.calendar-events/plugin.wasm",
           "released_at": "2026-05-24T00:34:41Z"
+        }
+      }
+    },
+    "com.solosoul.official.contact-exporter": {
+      "name": "Contact Exporter",
+      "publisher": "SoloSoul Official",
+      "latest_version": "1.0.0",
+      "versions": {
+        "1.0.0": {
+          "sha256": "86ed4baf1a5e96a2b11cf91d42b6d65dc0545cb558b4affc8d56bdc6a3272f8f",
+          "plugin_api_version": "1.0",
+          "min_app_version": "1.0.0",
+          "max_app_version": "999.999.999",
+          "download_url": "https://cdn.jsdelivr.net/gh/Gczmy/SoloSoul_plugin_market@main/plugins/com.solosoul.official.contact-exporter/plugin.wasm",
+          "raw_url": "https://raw.githubusercontent.com/Gczmy/SoloSoul_plugin_market/main/plugins/com.solosoul.official.contact-exporter/plugin.wasm",
+          "released_at": "2026-05-24T00:38:31Z"
         }
       }
     },
