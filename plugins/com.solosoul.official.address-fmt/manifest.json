@@ -1,23 +1,18 @@
 {
   "plugin_id": "com.solosoul.official.address-fmt",
   "name": "Address Formatter",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "plugin_api_version": "1.0",
   "min_app_version": "1.0.0",
   "max_app_version": "999.999.999",
-  "description": "地址格式化器 — 按目标国家/地区规范格式化地址（中/美/英/日/德等）",
+  "description": "地址格式化器 — 按目标国家/地区规范格式化 Vault 中的所有地址（中/美/英/日/德等）",
   "publisher": "SoloSoul Official",
   "homepage": "https://github.com/Gczmy/SoloSoul_plugin_market/tree/main/plugins/com.solosoul.official.address-fmt",
   "required_fields": [
-    "address.street",
-    "address.city",
-    "address.country"
+    "address.count",
+    "address.*"
   ],
-  "optional_fields": [
-    "address.state",
-    "address.postalCode",
-    "address.district"
-  ],
+  "optional_fields": [],
   "network_policy": {
     "block_all_outbound": true
   },

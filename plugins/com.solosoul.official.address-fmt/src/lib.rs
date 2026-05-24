@@ -1,7 +1,7 @@
 //! Address Formatter — SoloSoul Official Plugin
 //!
 //! 纯本地插件，零网络依赖。
-//! 将 Vault 中的地址按目标国家/地区规范格式化输出。
+//! 将 Vault 中的所有地址按目标国家/地区规范格式化输出。
 
 use solosoul_plugin_sdk::{get_field, log_error, log_info};
 
@@ -191,29 +191,61 @@ fn read_field(path: &str) -> String {
 /// 插件入口
 #[no_mangle]
 pub extern "C" fn run() -> i32 {
-    log_info("Address Formatter 启动 — 格式化地址");
+    log_info("Address Formatter 启动 — 格式化所有地址");
 
-    let addr = Address {
-        street: read_field("address.street"),
-        city: read_field("address.city"),
-        state: read_field("address.state"),
-        postal_code: read_field("address.postalCode"),
-        country: read_field("address.country"),
-        district: read_field("address.district"),
+    let count_str = read_field("address.count");
+    let count: usize = match count_str.parse() {
+        Ok(n) => n,
+        Err(_) => {
+            log_error("无法读取地址数量");
+            return -1;
+        }
     };
 
-    if addr.street.is_empty() || addr.city.is_empty() || addr.country.is_empty() {
-        log_error("缺少必需字段: street, city, country 不能为空");
+    if count == 0 {
+        log_error("未找到任何地址记录");
         return -1;
     }
 
-    let formatted = format_address(&addr);
-    let country_label = normalize_country(&addr.country);
+    let mut success_count = 0;
 
-    log_info(&format!("国家识别: {} → {}", addr.country, country_label));
-    log_info(&format!("格式化结果: {}", formatted));
+    for i in 0..count {
+        let street = read_field(&format!("address[{}].street", i));
+        let city = read_field(&format!("address[{}].city", i));
+        let state = read_field(&format!("address[{}].state", i));
+        let postal_code = read_field(&format!("address[{}].postalCode", i));
+        let country = read_field(&format!("address[{}].country", i));
+        let district = read_field(&format!("address[{}].label", i)); // label 作为 district 回退
 
-    0
+        if street.is_empty() || city.is_empty() || country.is_empty() {
+            log_error(&format!("地址[{}] 缺少必需字段: street, city, country 不能为空", i));
+            continue;
+        }
+
+        let addr = Address {
+            street,
+            city,
+            state,
+            postal_code,
+            country: country.clone(),
+            district,
+        };
+
+        let formatted = format_address(&addr);
+        let country_label = normalize_country(&country);
+
+        log_info(&format!("地址[{}] 国家识别: {} → {}", i, country, country_label));
+        log_info(&format!("地址[{}] 格式化结果: {}", i, formatted));
+        success_count += 1;
+    }
+
+    log_info(&format!("Address Formatter 完成 — 成功格式化 {} / {} 条地址", success_count, count));
+
+    if success_count == 0 {
+        -1
+    } else {
+        0
+    }
 }
 
 // ============================================================================
