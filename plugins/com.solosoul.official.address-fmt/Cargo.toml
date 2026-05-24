@@ -1,0 +1,12 @@
+[package]
+name = "address-fmt"
+version = "1.0.0"
+edition = "2021"
+authors = ["SoloSoul Official"]
+description = "Address Formatter — Format addresses according to country-specific conventions"
+
+[dependencies]
+solosoul-plugin-sdk = { path = "../../SDK/rust" }
+
+[lib]
+crate-type = ["cdylib"]
