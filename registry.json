@@ -1,6 +1,6 @@
 {
   "version": "1",
-  "updated_at": "2026-05-24T20:30:19Z",
+  "updated_at": "2026-05-24T20:32:13Z",
   "plugins": {
     "com.solosoul.official.address-fmt": {
       "name": "Address Formatter",
