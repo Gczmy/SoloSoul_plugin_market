@@ -1,6 +1,6 @@
 {
   "version": "1",
-  "updated_at": "2026-05-24T00:34:41Z",
+  "updated_at": "2026-05-24T00:37:00Z",
   "plugins": {
     "com.solosoul.official.address-fmt": {
       "name": "Address Formatter",
@@ -191,6 +191,22 @@
           "download_url": "https://cdn.jsdelivr.net/gh/Gczmy/SoloSoul_plugin_market@main/plugins/com.solosoul.official.namecard-gen/plugin.wasm",
           "raw_url": "https://raw.githubusercontent.com/Gczmy/SoloSoul_plugin_market/main/plugins/com.solosoul.official.namecard-gen/plugin.wasm",
           "released_at": "2026-05-24T00:23:49Z"
+        }
+      }
+    },
+    "com.solosoul.official.packing-list": {
+      "name": "Packing List",
+      "publisher": "SoloSoul Official",
+      "latest_version": "1.0.0",
+      "versions": {
+        "1.0.0": {
+          "sha256": "9cda98dec66db9240c70c3aa33bd587468f92d85280574e463967fc89cc6eb58",
+          "plugin_api_version": "1.0",
+          "min_app_version": "1.0.0",
+          "max_app_version": "999.999.999",
+          "download_url": "https://cdn.jsdelivr.net/gh/Gczmy/SoloSoul_plugin_market@main/plugins/com.solosoul.official.packing-list/plugin.wasm",
+          "raw_url": "https://raw.githubusercontent.com/Gczmy/SoloSoul_plugin_market/main/plugins/com.solosoul.official.packing-list/plugin.wasm",
+          "released_at": "2026-05-24T00:37:00Z"
         }
       }
     },
