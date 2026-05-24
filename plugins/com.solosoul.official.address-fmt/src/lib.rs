@@ -215,7 +215,14 @@ pub extern "C" fn run() -> i32 {
         let state = read_field(&format!("address[{}].state", i));
         let postal_code = read_field(&format!("address[{}].postalCode", i));
         let country = read_field(&format!("address[{}].country", i));
-        let district = read_field(&format!("address[{}].label", i)); // label 作为 district 回退
+        let district = {
+            let d = read_field(&format!("address[{}].district", i));
+            if d.is_empty() {
+                read_field(&format!("address[{}].label", i))
+            } else {
+                d
+            }
+        };
 
         if street.is_empty() || city.is_empty() || country.is_empty() {
             log_error(&format!("地址[{}] 缺少必需字段: street, city, country 不能为空", i));

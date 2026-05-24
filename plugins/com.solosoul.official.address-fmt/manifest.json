@@ -15,7 +15,7 @@
     "address.state",
     "address.postalCode",
     "address.country",
-    "address.district"
+    "address.label"
   ],
   "optional_fields": [],
   "network_policy": {
