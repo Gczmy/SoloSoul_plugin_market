@@ -1,6 +1,6 @@
 {
   "version": "1",
-  "updated_at": "2026-05-24T00:22:05Z",
+  "updated_at": "2026-05-24T00:23:49Z",
   "plugins": {
     "com.solosoul.official.address-fmt": {
       "name": "Address Formatter",
@@ -95,6 +95,22 @@
           "download_url": "https://cdn.jsdelivr.net/gh/Gczmy/SoloSoul_plugin_market@main/plugins/com.solosoul.official.mrz-encoder/plugin.wasm",
           "raw_url": "https://raw.githubusercontent.com/Gczmy/SoloSoul_plugin_market/main/plugins/com.solosoul.official.mrz-encoder/plugin.wasm",
           "released_at": "2026-05-24T00:06:05Z"
+        }
+      }
+    },
+    "com.solosoul.official.namecard-gen": {
+      "name": "Namecard Generator",
+      "publisher": "SoloSoul Official",
+      "latest_version": "1.0.0",
+      "versions": {
+        "1.0.0": {
+          "sha256": "7308b27a9a7e29e2c500716a0883f2f6717d29298846b35a4f74cd29be6895c7",
+          "plugin_api_version": "1.0",
+          "min_app_version": "1.0.0",
+          "max_app_version": "999.999.999",
+          "download_url": "https://cdn.jsdelivr.net/gh/Gczmy/SoloSoul_plugin_market@main/plugins/com.solosoul.official.namecard-gen/plugin.wasm",
+          "raw_url": "https://raw.githubusercontent.com/Gczmy/SoloSoul_plugin_market/main/plugins/com.solosoul.official.namecard-gen/plugin.wasm",
+          "released_at": "2026-05-24T00:23:49Z"
         }
       }
     },
