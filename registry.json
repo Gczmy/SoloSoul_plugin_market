@@ -1,6 +1,6 @@
 {
   "version": "1",
-  "updated_at": "2026-05-24T00:13:53Z",
+  "updated_at": "2026-05-24T00:17:17Z",
   "plugins": {
     "com.solosoul.official.address-fmt": {
       "name": "Address Formatter",
@@ -79,6 +79,22 @@
           "download_url": "https://cdn.jsdelivr.net/gh/Gczmy/SoloSoul_plugin_market@main/plugins/com.solosoul.official.mrz-encoder/plugin.wasm",
           "raw_url": "https://raw.githubusercontent.com/Gczmy/SoloSoul_plugin_market/main/plugins/com.solosoul.official.mrz-encoder/plugin.wasm",
           "released_at": "2026-05-24T00:06:05Z"
+        }
+      }
+    },
+    "com.solosoul.official.resume-builder": {
+      "name": "Resume Builder",
+      "publisher": "SoloSoul Official",
+      "latest_version": "1.0.0",
+      "versions": {
+        "1.0.0": {
+          "sha256": "91143b337e0b90b212b5fcf08f07378c25ffa20a9e0bf7604afa6eaec7a9b8b3",
+          "plugin_api_version": "1.0",
+          "min_app_version": "1.0.0",
+          "max_app_version": "999.999.999",
+          "download_url": "https://cdn.jsdelivr.net/gh/Gczmy/SoloSoul_plugin_market@main/plugins/com.solosoul.official.resume-builder/plugin.wasm",
+          "raw_url": "https://raw.githubusercontent.com/Gczmy/SoloSoul_plugin_market/main/plugins/com.solosoul.official.resume-builder/plugin.wasm",
+          "released_at": "2026-05-24T00:17:17Z"
         }
       }
     },
