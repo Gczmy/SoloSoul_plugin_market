@@ -1,0 +1,30 @@
+{
+  "plugin_id": "com.solosoul.official.tax-profile",
+  "name": "Tax Profile",
+  "version": "1.0.0",
+  "plugin_api_version": "1.0",
+  "min_app_version": "1.0.0",
+  "max_app_version": "999.999.999",
+  "description": "税务档案摘要 — 汇总税务居民身份、税号、收入来源等申报基础数据",
+  "publisher": "SoloSoul Official",
+  "homepage": "https://github.com/Gczmy/SoloSoul_plugin_market/tree/main/plugins/com.solosoul.official.tax-profile",
+  "required_fields": [
+    "address.country"
+  ],
+  "optional_fields": [
+    "taxId.number",
+    "taxId.country",
+    "employment.company",
+    "employment.position",
+    "employment.incomeSource",
+    "identity.fullName",
+    "identity.dateOfBirth",
+    "address.street",
+    "address.city"
+  ],
+  "network_policy": {
+    "block_all_outbound": true
+  },
+  "data_ttl_seconds": 60,
+  "require_user_confirmation": false
+}
