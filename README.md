@@ -2,8 +2,8 @@
 
 > SoloSoul（独灵）官方插件市场
 >
-> 本仓库以 Git Submodule 形式挂载于主项目 `SoloSoul_code/SoloSoul_plugin_market/`，
-> 同时作为独立的 CDN 分发源，供 SoloSoul 主软件运行时动态拉取插件。
+> 本仓库作为**独立的 Git 公开仓库**，既是插件源码托管中心，也是 SoloSoul 主软件的**动态分发源**。
+> 主软件通过 jsDelivr CDN + GitHub Raw fallback 直接从本仓库拉取插件，无需额外服务器。
 
 ---
 
@@ -11,39 +11,63 @@
 
 SoloSoul Plugin Market 是独灵生态的官方插件仓库，遵循以下核心原则：
 
-- **与主软件生命周期分离**：插件不随 App 二进制打包，主软件通过 CDN 动态下载安装
+- **仓库即市场**：GitHub 公开仓库直接充当插件市场，push 即发布
+- **零服务器成本**：通过 jsDelivr CDN 免费分发，GitHub Raw 作为 fallback
 - **安全优先**：所有插件经 SHA-256 白名单校验 + 版本签名验证后方可加载
 - **字段级权限**：插件通过声明式清单请求数据，用户逐字段授权
-- **Wasm 沙盒执行**：插件编译为 `wasm32-wasi` 目标，在 Wasmtime 沙盒中隔离运行
+- **Wasm 沙盒执行**：插件编译为 `wasm32-wasip1` 目标，在 Wasmtime 沙盒中隔离运行
+
+### 分发架构
+
+```
+┌─────────────────┐     jsDelivr CDN      ┌─────────────────┐
+│  SoloSoul 客户端 │  ←──────────────────  │  GitHub 公开仓库  │
+│  (Flutter/Rust)  │  fallback: Raw GitHub │  (本仓库)        │
+└─────────────────┘                      └─────────────────┘
+         │                                          │
+         │  1. GET registry.json                    │
+         │  2. GET plugins/{id}/plugin.wasm         │
+         │  3. GET plugins/{id}/manifest.json       │
+         │                                          │
+         └──────────── 本地缓存 + SHA-256 校验 ───────┘
+```
 
 ---
 
 ## 2. 快速开始（插件开发者）
 
 ```bash
-# 1. 克隆仓库（含子模块）
-git clone --recursive git@github.com:Gczmy/SoloSoul_code.git
+# 1. 克隆本仓库
+ git clone git@github.com:Gczmy/SoloSoul_plugin_market.git
+cd SoloSoul_plugin_market
 
-# 2. 进入插件市场目录
-cd SoloSoul_code/SoloSoul_plugin_market
+# 2. 安装 wasm32-wasip1 目标（如未安装）
+rustup target add wasm32-wasip1
 
-# 3. 安装 wasm32-wasi 目标（如未安装）
-rustup target add wasm32-wasi
-
-# 4. 创建新插件
+# 3. 创建新插件
 cd plugins
-cargo new --lib com.example.my-plugin
+mkdir com.example.my-plugin
+cd com.example.my-plugin
+cargo init --lib
 
-# 5. 在 Cargo.toml 中依赖 SDK
+# 4. 在 Cargo.toml 中依赖 SDK
 # [dependencies]
 # solosoul-plugin-sdk = { path = "../../SDK/rust" }
 
-# 6. 编写插件逻辑，编译
-cargo build --target wasm32-wasi --release
+# 5. 编写插件逻辑 + manifest.json，编译
+cargo build --target wasm32-wasip1 --release
 
-# 7. 产物位于 target/wasm32-wasi/release/libmy_plugin.wasm
-#    重命名为 plugin.wasm 并连同 manifest.json 提交 PR
+# 6. 产物位于 target/wasm32-wasip1/release/*.wasm
+#    复制为 plugin.wasm 并连同 manifest.json 提交
+ cp target/wasm32-wasip1/release/*.wasm plugin.wasm
+
+# 7. git commit & push → 自动触发 CI 更新 registry.json
+git add -A
+git commit -m "feat: add my-plugin v1.0.0"
+git push origin main
 ```
+
+**完成！** push 后 GitHub Actions 会自动重新生成 `registry.json`，约 1 分钟后客户端即可发现新插件。
 
 ---
 
@@ -52,18 +76,24 @@ cargo build --target wasm32-wasi --release
 ```
 SoloSoul_plugin_market/
 ├── README.md                          # 本文档
+├── registry.json                      # 插件索引（⚠️ CI 自动生成，勿手动编辑）
+├── .github/
+│   └── workflows/
+│       └── update-registry.yml        # CI：push 时自动扫描 plugins/ 生成 registry
+├── scripts/
+│   └── generate_registry.py           # registry.json 生成脚本
 ├── docs/
-│   └── plugin-ideas.md                # 插件创意库（官方/第三方插件开发参考）
+│   └── plugin-ideas.md                # 插件创意库
 ├── SDK/                               # 插件开发 SDK
 │   ├── rust/                          # Rust SDK（Host Functions 绑定）
 │   ├── typescript/                    # AssemblyScript SDK（预留）
 │   └── schema/
 │       └── manifest.schema.json       # manifest.json JSON Schema
-├── registry.json                      # 官方插件白名单注册表
-├── plugins/                           # 官方插件源码仓库
-│   └── com.solosoul.slotgo/
-│       ├── manifest.json
-│       ├── plugin.wasm
+├── plugins/                           # 官方插件源码 + wasm
+│   └── com.solosoul.official.id-validator/
+│       ├── manifest.json              # 插件清单
+│       ├── plugin.wasm                # 编译产物
+│       ├── Cargo.toml
 │       └── src/
 │           └── lib.rs
 └── examples/                          # 示例插件
@@ -78,30 +108,24 @@ SoloSoul_plugin_market/
 
 ```json
 {
-  "plugin_id": "com.solosoul.slotgo",
-  "name": "SlotGo - UK Visa Booking",
+  "plugin_id": "com.solosoul.official.id-validator",
+  "name": "ID Validator",
   "version": "1.0.0",
   "plugin_api_version": "1.0",
   "min_app_version": "1.0.0",
-  "max_app_version": "2.0.0",
-  "description": "自动监控并预约 UK Visa 面签时间",
-  "publisher": "SoloSoul Team",
-  "homepage": "https://github.com/Gczmy/SoloSoul_plugin_market",
-  "signature": "base64-encoded-ed25519-signature",
+  "max_app_version": "999.999.999",
+  "description": "中国居民身份证 18 位校验",
+  "publisher": "SoloSoul Official",
+  "homepage": "https://github.com/Gczmy/SoloSoul_plugin_market/tree/main/plugins/com.solosoul.official.id-validator",
   "required_fields": [
-    "identity.full_name",
-    "travel.primary_passport.number"
+    "idCard.number"
   ],
-  "optional_fields": [
-    "identity.contact.emails"
-  ],
+  "optional_fields": [],
   "network_policy": {
-    "allowed_domains": ["*.visaservices.com"],
     "block_all_outbound": true
   },
-  "data_ttl_seconds": 300,
-  "require_user_confirmation": true,
-  "consent_validity_hours": 24
+  "data_ttl_seconds": 60,
+  "require_user_confirmation": false
 }
 ```
 
@@ -112,43 +136,45 @@ SoloSoul_plugin_market/
 | `plugin_id` | string | ✅ | 反向域名格式，全局唯一标识 |
 | `name` | string | ✅ | 插件显示名称 |
 | `version` | string | ✅ | SemVer 格式，如 `1.0.0` |
-| `plugin_api_version` | string | ✅ | 插件 ABI 版本，与主软件 `PLUGIN_API_VERSION` 严格匹配 |
+| `plugin_api_version` | string | ✅ | 插件 ABI 版本，与主软件严格匹配 |
 | `min_app_version` | string | ✅ | 兼容的最低 SoloSoul App 版本 |
 | `max_app_version` | string | ✅ | 兼容的最高 SoloSoul App 版本 |
 | `description` | string | ✅ | 一句话描述插件功能 |
 | `publisher` | string | ✅ | 发布者名称 |
 | `homepage` | string | ❌ | 项目主页 URL |
-| `signature` | string | ✅ | Ed25519 签名（Release 模式强制校验） |
 | `required_fields` | string[] | ✅ | 插件必需的字段路径列表 |
 | `optional_fields` | string[] | ❌ | 可选字段路径列表 |
 | `network_policy` | object | ❌ | 网络白名单策略 |
 | `data_ttl_seconds` | number | ❌ | 敏感数据内存存活时间，默认 300 |
 | `require_user_confirmation` | boolean | ❌ | 是否要求用户确认，默认 `true` |
-| `consent_validity_hours` | number | ❌ | 授权有效期，默认 24 |
 
 ---
 
 ## 5. 插件注册表规范（registry.json）
 
-`registry.json` 是插件市场的索引文件，由 CI/CD 自动维护，供 SoloSoul 主软件拉取：
+> ⚠️ **此文件由 CI 自动生成，请勿手动编辑。**
+> 如需修改，请编辑 `scripts/generate_registry.py` 或插件的 `manifest.json`。
+
+`registry.json` 是插件市场的机器可读索引，供 SoloSoul 客户端拉取：
 
 ```json
 {
   "version": "1",
-  "updated_at": "2026-05-22T00:00:00Z",
+  "updated_at": "2026-05-24T00:00:00Z",
   "plugins": {
-    "com.solosoul.slotgo": {
-      "name": "SlotGo - UK Visa Booking",
-      "publisher": "SoloSoul Team",
+    "com.solosoul.official.id-validator": {
+      "name": "ID Validator",
+      "publisher": "SoloSoul Official",
       "latest_version": "1.0.0",
       "versions": {
         "1.0.0": {
-          "sha256": "a3b5c8d7e9f0123456789abcdef0123456789abcdef0123456789abcdef0123",
+          "sha256": "e2ee0a3e98eb013a20ab1e77d3e17bd8ced5941a6400ae810940b9046c8e6e0f",
           "plugin_api_version": "1.0",
           "min_app_version": "1.0.0",
-          "max_app_version": "2.0.0",
-          "download_url": "https://plugins.solosoul.dev/com.solosoul.slotgo/1.0.0/",
-          "released_at": "2026-05-20T00:00:00Z"
+          "max_app_version": "999.999.999",
+          "download_url": "https://cdn.jsdelivr.net/gh/Gczmy/SoloSoul_plugin_market@main/plugins/com.solosoul.official.id-validator/plugin.wasm",
+          "raw_url": "https://raw.githubusercontent.com/Gczmy/SoloSoul_plugin_market/main/plugins/com.solosoul.official.id-validator/plugin.wasm",
+          "released_at": "2026-05-24T00:00:00Z"
         }
       }
     }
@@ -156,63 +182,107 @@ SoloSoul_plugin_market/
 }
 ```
 
-## 6. CI/CD 发布流程
+### 字段说明
 
-插件通过 GitHub Actions 自动构建并发布到 CDN：
+| 字段 | 说明 |
+|------|------|
+| `download_url` | **优先下载地址**，jsDelivr CDN（中国大陆访问友好） |
+| `raw_url` | **fallback 地址**，GitHub Raw 直连 |
+| `sha256` | `plugin.wasm` 的 SHA-256 哈希，客户端安装时强制校验 |
 
-```yaml
-# .github/workflows/plugin_release.yml
-name: Plugin Release
+### 下载策略
 
-on:
-  push:
-    branches: [main]
-    paths: ['SoloSoul_plugin_market/**']
+SoloSoul 客户端按以下优先级下载：
 
-jobs:
-  build-and-deploy:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          submodules: recursive
-
-      - name: Build plugins
-        run: |
-          cd SoloSoul_plugin_market
-          for dir in plugins/*/; do
-            cd "$dir"
-            rustup target add wasm32-wasi
-            cargo build --target wasm32-wasi --release
-            cd -
-          done
-
-      - name: Upload to CDN
-        run: |
-          aws s3 sync SoloSoul_plugin_market/plugins/ s3://plugins.solosoul.dev/
-          aws s3 cp SoloSoul_plugin_market/registry.json s3://plugins.solosoul.dev/registry.json
-```
+1. `download_url`（jsDelivr CDN）— 全球加速，国内可用
+2. `raw_url`（GitHub Raw）— CDN 失败时 fallback
+3. 内置 `assets/registry.json` — 完全离线时的兜底
 
 ---
 
-## 7. SDK 使用指南
+## 6. CI/CD 发布流程
+
+本仓库已配置 GitHub Actions，实现 **push 即发布**：
+
+### 触发条件
+
+- push 到 `main` 分支，且变更涉及 `plugins/`、`scripts/generate_registry.py` 或 workflow 本身
+- 或手动触发 `workflow_dispatch`
+
+### 执行流程
+
+```
+1. checkout 仓库
+2. 运行 scripts/generate_registry.py
+   ├── 扫描 plugins/ 下所有目录
+   ├── 读取每个插件的 manifest.json
+   ├── 计算 plugin.wasm 的 SHA-256
+   └── 生成 registry.json（含 jsDelivr + raw URL）
+3. 如 registry.json 有变化 → auto-commit & push
+```
+
+### 本地预览 registry 生成
+
+```bash
+python3 scripts/generate_registry.py
+# 输出：Generated registry.json with N plugin(s)
+```
+
+环境变量（用于覆盖默认仓库地址）：
+
+| 变量 | 默认值 | 说明 |
+|------|--------|------|
+| `GITHUB_OWNER` | `Gczmy` | GitHub 仓库所有者 |
+| `GITHUB_REPO` | `SoloSoul_plugin_market` | 仓库名称 |
+| `GITHUB_BRANCH` | `main` | 分支名 |
+
+---
+
+## 7. 插件版本更新流程
+
+更新现有插件无需创建 Release Tag，只需修改源码后 push：
+
+```bash
+cd plugins/com.solosoul.official.my-plugin
+
+# 1. 修改源码
+# 2. 更新 manifest.json 中的 version 字段
+# 3. 重新编译
+rustup run stable cargo build --target wasm32-wasip1 --release
+cp target/wasm32-wasip1/release/*.wasm plugin.wasm
+
+# 4. 提交
+git add -A
+git commit -m "feat(id-validator): add visa expiry check v1.1.0"
+git push origin main
+
+# 5. CI 自动生成新的 registry.json，包含新版本条目
+```
+
+> **注意**：旧版本不会从 registry 中删除，客户端仍可选择安装历史版本（未来功能）。
+
+---
+
+## 8. SDK 使用指南
 
 ### Rust SDK
 
 ```rust
-use solosoul_plugin_sdk::{get_field, post_json};
+use solosoul_plugin_sdk::{get_field, log_info, log_error};
 
 #[no_mangle]
 pub extern "C" fn run() -> i32 {
-    let name = match get_field("identity.full_name") {
-        Ok(v) => v,
-        Err(e) => {
-            solosoul_plugin_sdk::log_error(&format!("获取失败: {:?}", e));
-            return -1;
+    match get_field("idCard.number") {
+        Ok(value) => {
+            log_info(&format!("读取成功: {}", value));
+            // ... 业务逻辑
+            0
         }
-    };
-    // ... 业务逻辑
-    0
+        Err(e) => {
+            log_error(&format!("获取失败: {:?}", e));
+            -1
+        }
+    }
 }
 ```
 
@@ -220,7 +290,7 @@ pub extern "C" fn run() -> i32 {
 
 | 函数 | 返回值 | 说明 |
 |------|--------|------|
-| `solosoul_request_field(...)` | `i32` | 请求用户字段，0=成功，-1=权限不足，-2=用户拒绝 |
+| `solosoul_request_field(...)` | `i32` | 请求用户字段，0=成功，负数=错误码 |
 | `solosoul_post_data(...)` | `i32` | 代理网络请求，0=成功，-10=域名未授权 |
 | `solosoul_log(...)` | void | 写审计日志 |
 | `solosoul_get_timestamp()` | `i64` | 获取 Unix 时间戳（毫秒） |
@@ -229,13 +299,30 @@ pub extern "C" fn run() -> i32 {
 
 ---
 
-## 8. 贡献指南
+## 9. 贡献指南
 
 1. Fork 本仓库
 2. 在 `plugins/` 下创建新的插件目录（反向域名格式）
 3. 编写源码 + `manifest.json`，确保通过 `cargo clippy` 和 `cargo test`
-4. 提交 PR，CI 将自动构建并更新 `registry.json`
-5. 维护者审核通过后合并，插件自动发布到 CDN
+4. 编译为 `wasm32-wasip1`，生成 `plugin.wasm`
+5. 提交 PR，CI 将自动验证并更新 `registry.json`
+6. 维护者审核通过后合并，插件即刻上线
+
+### 第三方插件市场
+
+任何公开 GitHub 仓库都可以作为 SoloSoul 的插件源，只需满足：
+
+- 仓库根目录包含 `registry.json`
+- 插件目录结构为 `plugins/{plugin_id}/{manifest.json, plugin.wasm}`
+
+用户可在 SoloSoul 客户端设置中添加自定义源：
+
+```
+源名称: 我的私有市场
+仓库: myuser/my-plugins
+分支: main
+CDN 加速: 是
+```
 
 ---
 
