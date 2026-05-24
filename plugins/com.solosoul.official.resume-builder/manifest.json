@@ -35,5 +35,15 @@
     "block_all_outbound": true
   },
   "data_ttl_seconds": 60,
-  "require_user_confirmation": false
+  "require_user_confirmation": false,
+  "i18n": {
+    "zh": {
+      "name": "简历生成器",
+      "description": "从 Vault 提取信息自动生成标准简历。"
+    },
+    "en": {
+      "name": "Resume Builder",
+      "description": "Automatically generate a standard-format resume by extracting education, work experience, skills, and languages from the Vault."
+    }
+  }
 }

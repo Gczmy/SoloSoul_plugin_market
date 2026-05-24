@@ -36,5 +36,15 @@
     "block_all_outbound": true
   },
   "data_ttl_seconds": 60,
-  "require_user_confirmation": false
+  "require_user_confirmation": false,
+  "i18n": {
+    "zh": {
+      "name": "档案完整度",
+      "description": "扫描 Vault 中的所有档案分区，计算完整度百分比并生成报告。"
+    },
+    "en": {
+      "name": "Data Completeness",
+      "description": "Scan all sections in the Vault, calculate completeness percentage, and generate a report highlighting missing key fields."
+    }
+  }
 }

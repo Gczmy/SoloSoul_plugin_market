@@ -24,5 +24,15 @@
     "block_all_outbound": true
   },
   "data_ttl_seconds": 60,
-  "require_user_confirmation": false
+  "require_user_confirmation": false,
+  "i18n": {
+    "zh": {
+      "name": "MRZ 编码器",
+      "description": "将护照/身份证信息编码为 ICAO Doc 9303 MRZ 格式。"
+    },
+    "en": {
+      "name": "MRZ Encoder",
+      "description": "Encode passport/ID card information from the Vault into ICAO Doc 9303 standard Machine Readable Zone (MRZ) format."
+    }
+  }
 }

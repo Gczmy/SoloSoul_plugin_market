@@ -35,5 +35,15 @@
     "block_all_outbound": true
   },
   "data_ttl_seconds": 60,
-  "require_user_confirmation": false
+  "require_user_confirmation": false,
+  "i18n": {
+    "zh": {
+      "name": "表单预填",
+      "description": "根据场景生成 Vault 字段到目标表单字段的映射表。"
+    },
+    "en": {
+      "name": "Form Prefiller",
+      "description": "Generate a mapping table from Vault fields to target form fields based on the scenario (visa, bank, hotel, etc.)."
+    }
+  }
 }

@@ -27,5 +27,15 @@
     "block_all_outbound": true
   },
   "data_ttl_seconds": 60,
-  "require_user_confirmation": false
+  "require_user_confirmation": false,
+  "i18n": {
+    "zh": {
+      "name": "名片生成器",
+      "description": "生成加密数字名片二维码，需 SoloSoul 扫码解密。"
+    },
+    "en": {
+      "name": "Namecard Generator",
+      "description": "Generate an encrypted digital business card as a QR code, decryptable only by scanning with SoloSoul."
+    }
+  }
 }

@@ -19,5 +19,15 @@
     "block_all_outbound": true
   },
   "data_ttl_seconds": 60,
-  "require_user_confirmation": false
+  "require_user_confirmation": false,
+  "i18n": {
+    "zh": {
+      "name": "旅行足迹",
+      "description": "分析签证与旅行记录，生成到访国家统计与时间线。"
+    },
+    "en": {
+      "name": "Travel Footprint",
+      "description": "Analyze visa and travel records in the Vault to generate country visit statistics, favorite regions, and travel timeline reports."
+    }
+  }
 }

@@ -19,5 +19,15 @@
     "block_all_outbound": true
   },
   "data_ttl_seconds": 30,
-  "require_user_confirmation": false
+  "require_user_confirmation": false,
+  "i18n": {
+    "zh": {
+      "name": "TOTP 生成器",
+      "description": "基于 Vault 中 2FA Secret 生成 TOTP 动态验证码。"
+    },
+    "en": {
+      "name": "TOTP Generator",
+      "description": "Generate 6-digit TOTP dynamic verification codes based on the 2FA Secret stored in the Vault, following RFC 6238."
+    }
+  }
 }

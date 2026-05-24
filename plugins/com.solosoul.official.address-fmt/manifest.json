@@ -17,5 +17,15 @@
     "block_all_outbound": true
   },
   "data_ttl_seconds": 60,
-  "require_user_confirmation": false
+  "require_user_confirmation": false,
+  "i18n": {
+    "zh": {
+      "name": "地址格式化器",
+      "description": "将 Vault 中的所有地址按目标国家/地区规范格式化输出。支持中国、美国、英国、日本、德国、法国、加拿大、澳大利亚、新加坡、韩国等10个国家/地区的地址格式。运行后会弹出对话框，按条展示格式化后的地址结果。"
+    },
+    "en": {
+      "name": "Address Formatter",
+      "description": "Format all addresses in the Vault according to target country/region standards. Supports 10 countries/regions including China, US, UK, Japan, Germany, France, Canada, Australia, Singapore, and South Korea."
+    }
+  }
 }

@@ -21,5 +21,15 @@
     "block_all_outbound": true
   },
   "data_ttl_seconds": 60,
-  "require_user_confirmation": false
+  "require_user_confirmation": false,
+  "i18n": {
+    "zh": {
+      "name": "行李清单",
+      "description": "根据旅行记录智能生成行李清单建议。"
+    },
+    "en": {
+      "name": "Packing List",
+      "description": "Intelligently generate a packing list suggestion based on travel records and destination information in the Vault."
+    }
+  }
 }

@@ -27,5 +27,15 @@
     "block_all_outbound": true
   },
   "data_ttl_seconds": 60,
-  "require_user_confirmation": false
+  "require_user_confirmation": false,
+  "i18n": {
+    "zh": {
+      "name": "联系人导出",
+      "description": "将 Vault 中的联系信息导出为标准 vCard 格式。"
+    },
+    "en": {
+      "name": "Contact Exporter",
+      "description": "Export contact information from the Vault into standard vCard format."
+    }
+  }
 }

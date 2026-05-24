@@ -26,5 +26,15 @@
     "block_all_outbound": true
   },
   "data_ttl_seconds": 60,
-  "require_user_confirmation": false
+  "require_user_confirmation": false,
+  "i18n": {
+    "zh": {
+      "name": "税务档案",
+      "description": "根据居住国与收入来源汇总税务申报基础数据。"
+    },
+    "en": {
+      "name": "Tax Profile",
+      "description": "Summarize basic tax filing data based on the user's country of residence, income sources, and tax residency status."
+    }
+  }
 }

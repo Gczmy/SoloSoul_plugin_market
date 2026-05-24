@@ -20,5 +20,15 @@
     "block_all_outbound": true
   },
   "data_ttl_seconds": 60,
-  "require_user_confirmation": false
+  "require_user_confirmation": false,
+  "i18n": {
+    "zh": {
+      "name": "到期卫士",
+      "description": "扫描 Vault 中证件有效期，按 30/60/90/180 天分级提醒。"
+    },
+    "en": {
+      "name": "Expiry Guardian",
+      "description": "Scan all documents (passports, visas, ID cards, credit cards) for expiration dates and sort by urgency (30/60/90/180 days)."
+    }
+  }
 }

@@ -28,5 +28,15 @@
     "block_all_outbound": true
   },
   "data_ttl_seconds": 60,
-  "require_user_confirmation": false
+  "require_user_confirmation": false,
+  "i18n": {
+    "zh": {
+      "name": "数字遗嘱",
+      "description": "基于 Vault 数据生成数字遗产分配建议。"
+    },
+    "en": {
+      "name": "Digital Will",
+      "description": "Generate digital estate allocation suggestions based on data stored in the Vault."
+    }
+  }
 }

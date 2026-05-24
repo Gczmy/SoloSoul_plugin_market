@@ -18,5 +18,15 @@
     "block_all_outbound": true
   },
   "data_ttl_seconds": 60,
-  "require_user_confirmation": false
+  "require_user_confirmation": false,
+  "i18n": {
+    "zh": {
+      "name": "电话格式化",
+      "description": "按目标国家/地区规范格式化电话号码。"
+    },
+    "en": {
+      "name": "Phone Formatter",
+      "description": "Format phone numbers from the Vault according to target country/region dialing standards."
+    }
+  }
 }

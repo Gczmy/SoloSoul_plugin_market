@@ -25,5 +25,15 @@
     "block_all_outbound": true
   },
   "data_ttl_seconds": 60,
-  "require_user_confirmation": false
+  "require_user_confirmation": false,
+  "i18n": {
+    "zh": {
+      "name": "紧急联系卡",
+      "description": "生成紧急情况下使用的医疗/联系信息卡片，纯本地运行。"
+    },
+    "en": {
+      "name": "Emergency Card",
+      "description": "Generate an emergency medical/contact information card. Data is stored locally with no network required."
+    }
+  }
 }

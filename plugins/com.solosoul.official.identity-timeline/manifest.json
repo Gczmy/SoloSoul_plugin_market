@@ -27,5 +27,15 @@
     "block_all_outbound": true
   },
   "data_ttl_seconds": 60,
-  "require_user_confirmation": false
+  "require_user_confirmation": false,
+  "i18n": {
+    "zh": {
+      "name": "身份时间线",
+      "description": "按时间线展示用户身份变迁历程。"
+    },
+    "en": {
+      "name": "Identity Timeline",
+      "description": "Display the user's identity evolution over time, including education, work, visas, and asset acquisition milestones."
+    }
+  }
 }

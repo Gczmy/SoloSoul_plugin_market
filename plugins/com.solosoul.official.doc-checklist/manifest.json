@@ -25,5 +25,15 @@
     "block_all_outbound": true
   },
   "data_ttl_seconds": 60,
-  "require_user_confirmation": false
+  "require_user_confirmation": false,
+  "i18n": {
+    "zh": {
+      "name": "材料清单",
+      "description": "根据目标场景反推 Vault 中已有和缺失的材料清单。"
+    },
+    "en": {
+      "name": "Doc Checklist",
+      "description": "Infer existing and missing materials from the Vault based on target scenarios (visa application, bank account opening, etc.)."
+    }
+  }
 }

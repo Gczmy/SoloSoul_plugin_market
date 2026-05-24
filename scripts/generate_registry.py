@@ -87,7 +87,13 @@ def scan_plugins(owner: str, repo: str, branch: str) -> dict:
                 "publisher": manifest.get("publisher", "Unknown"),
                 "latest_version": version,
                 "versions": {},
+                "description": manifest.get("description"),
+                "homepage": manifest.get("homepage"),
             }
+            # 提取多语言信息
+            i18n = manifest.get("i18n")
+            if i18n:
+                plugins[plugin_id]["i18n"] = i18n
 
         # 版本号比较，更新 latest_version
         existing_versions = plugins[plugin_id]["versions"]
@@ -96,7 +102,7 @@ def scan_plugins(owner: str, repo: str, branch: str) -> dict:
             if version > plugins[plugin_id]["latest_version"]:
                 plugins[plugin_id]["latest_version"] = version
 
-        existing_versions[version] = {
+        version_entry = {
             "sha256": wasm_sha256,
             "plugin_api_version": manifest.get("plugin_api_version", "1.0"),
             "min_app_version": manifest.get("min_app_version", "1.0.0"),
@@ -105,6 +111,11 @@ def scan_plugins(owner: str, repo: str, branch: str) -> dict:
             "raw_url": build_raw_url(owner, repo, branch, plugin_dir.name),
             "released_at": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
         }
+        # 提取版本变更日志
+        changelog = manifest.get("changelog")
+        if changelog:
+            version_entry["changelog"] = changelog
+        existing_versions[version] = version_entry
 
     return plugins
 
@@ -122,7 +133,7 @@ def main():
         "plugins": plugins,
     }
 
-    # 保留旧 registry 中已发布版本的 released_at（避免每次生成都更新时间）
+    # 合并旧 registry：保留历史版本记录 + 保留未变更版本的 released_at
     if REGISTRY_FILE.exists():
         try:
             with open(REGISTRY_FILE, "r", encoding="utf-8") as f:
@@ -130,15 +141,21 @@ def main():
             for plugin_id, plugin_entry in old_registry.get("plugins", {}).items():
                 if plugin_id not in plugins:
                     continue
-                for version, version_info in plugin_entry.get("versions", {}).items():
-                    if version in plugins[plugin_id]["versions"]:
+                old_versions = plugin_entry.get("versions", {})
+                new_versions = plugins[plugin_id]["versions"]
+                for version, version_info in old_versions.items():
+                    if version in new_versions:
+                        # 版本仍存在：若 wasm 未变，保留旧的 released_at
                         old_sha = version_info.get("sha256")
-                        new_sha = plugins[plugin_id]["versions"][version]["sha256"]
+                        new_sha = new_versions[version]["sha256"]
                         if old_sha == new_sha:
-                            # wasm 未变，保留旧的 released_at
-                            plugins[plugin_id]["versions"][version]["released_at"] = version_info.get(
-                                "released_at", plugins[plugin_id]["versions"][version]["released_at"]
+                            new_versions[version]["released_at"] = version_info.get(
+                                "released_at", new_versions[version]["released_at"]
                             )
+                    else:
+                        # 版本已不存在于新扫描中：保留旧记录作为历史版本
+                        new_versions[version] = version_info
+                        print(f"  Preserved historical version: {plugin_id} @ {version}")
         except Exception as e:
             print(f"Warning: failed to merge old registry: {e}", file=sys.stderr)
 

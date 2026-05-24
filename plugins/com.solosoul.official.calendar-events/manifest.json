@@ -19,5 +19,15 @@
     "block_all_outbound": true
   },
   "data_ttl_seconds": 60,
-  "require_user_confirmation": false
+  "require_user_confirmation": false,
+  "i18n": {
+    "zh": {
+      "name": "日历事件",
+      "description": "从 Vault 中提取日期相关信息，生成日历事件预览列表。"
+    },
+    "en": {
+      "name": "Calendar Events",
+      "description": "Extract date-related information from the Vault and generate a calendar event preview list."
+    }
+  }
 }

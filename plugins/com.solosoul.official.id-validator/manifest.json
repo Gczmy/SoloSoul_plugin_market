@@ -8,11 +8,25 @@
   "description": "校验证件号码格式与校验位 — 支持中国居民身份证",
   "publisher": "SoloSoul Official",
   "homepage": "https://github.com/Gczmy/SoloSoul_plugin_market/tree/main/plugins/com.solosoul.official.id-validator",
-  "required_fields": ["idCard.number"],
-  "optional_fields": ["passport.number"],
+  "required_fields": [
+    "idCard.number"
+  ],
+  "optional_fields": [
+    "passport.number"
+  ],
   "network_policy": {
     "block_all_outbound": true
   },
   "data_ttl_seconds": 60,
-  "require_user_confirmation": false
+  "require_user_confirmation": false,
+  "i18n": {
+    "zh": {
+      "name": "证件校验",
+      "description": "校验各国证件号码格式与校验位。"
+    },
+    "en": {
+      "name": "ID Validator",
+      "description": "Validate ID number formats and check digits for various countries, including Chinese ID, US SSN, and UK NI Number."
+    }
+  }
 }
