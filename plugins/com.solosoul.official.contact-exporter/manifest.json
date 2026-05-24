@@ -1,0 +1,31 @@
+{
+  "plugin_id": "com.solosoul.official.contact-exporter",
+  "name": "Contact Exporter",
+  "version": "1.0.0",
+  "plugin_api_version": "1.0",
+  "min_app_version": "1.0.0",
+  "max_app_version": "999.999.999",
+  "description": "联系人导出器 — 将 Vault 中的个人联系信息导出为 CSV 格式",
+  "publisher": "SoloSoul Official",
+  "homepage": "https://github.com/Gczmy/SoloSoul_plugin_market/tree/main/plugins/com.solosoul.official.contact-exporter",
+  "required_fields": [
+    "identity.fullName"
+  ],
+  "optional_fields": [
+    "contact.email",
+    "contact.phone",
+    "contact.website",
+    "identity.title",
+    "identity.organization",
+    "address.street",
+    "address.city",
+    "address.state",
+    "address.postalCode",
+    "address.country"
+  ],
+  "network_policy": {
+    "block_all_outbound": true
+  },
+  "data_ttl_seconds": 60,
+  "require_user_confirmation": false
+}
