@@ -1,6 +1,6 @@
 {
   "version": "1",
-  "updated_at": "2026-05-24T00:17:17Z",
+  "updated_at": "2026-05-24T00:20:07Z",
   "plugins": {
     "com.solosoul.official.address-fmt": {
       "name": "Address Formatter",
@@ -111,6 +111,22 @@
           "download_url": "https://cdn.jsdelivr.net/gh/Gczmy/SoloSoul_plugin_market@main/plugins/com.solosoul.official.totp-gen/plugin.wasm",
           "raw_url": "https://raw.githubusercontent.com/Gczmy/SoloSoul_plugin_market/main/plugins/com.solosoul.official.totp-gen/plugin.wasm",
           "released_at": "2026-05-24T00:13:53Z"
+        }
+      }
+    },
+    "com.solosoul.official.travel-footprint": {
+      "name": "Travel Footprint",
+      "publisher": "SoloSoul Official",
+      "latest_version": "1.0.0",
+      "versions": {
+        "1.0.0": {
+          "sha256": "757311f207739383b2ea6d7288bcf22e69f9cf9cd8c4def13bb42567cdf9d793",
+          "plugin_api_version": "1.0",
+          "min_app_version": "1.0.0",
+          "max_app_version": "999.999.999",
+          "download_url": "https://cdn.jsdelivr.net/gh/Gczmy/SoloSoul_plugin_market@main/plugins/com.solosoul.official.travel-footprint/plugin.wasm",
+          "raw_url": "https://raw.githubusercontent.com/Gczmy/SoloSoul_plugin_market/main/plugins/com.solosoul.official.travel-footprint/plugin.wasm",
+          "released_at": "2026-05-24T00:20:07Z"
         }
       }
     },
