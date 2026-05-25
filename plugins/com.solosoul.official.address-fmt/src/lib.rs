@@ -188,11 +188,11 @@ fn read_field(path: &str) -> String {
     match get_field(path) {
         Ok(value) => {
             let trimmed = value.trim().to_string();
-            log_info(&format!("[address-fmt] read_field('{}') OK value='{}'", path, &trimmed[..trimmed.len().min(80)]));
+            log_info(&format!("read_field('{}') OK value='{}'", path, &trimmed[..trimmed.len().min(80)]));
             trimmed
         }
         Err(e) => {
-            log_error(&format!("[address-fmt] read_field('{}') FAILED: {:?}", path, e));
+            log_error(&format!("read_field('{}') FAILED: {:?}", path, e));
             String::new()
         }
     }
@@ -204,25 +204,25 @@ pub extern "C" fn run() -> i32 {
     log_info("Address Formatter 启动 — 格式化所有地址");
 
     let count_str = read_field("address.count");
-    log_info(&format!("[address-fmt] address.count raw='{}'", count_str));
+    log_info(&format!("address.count raw='{}'", count_str));
     let count: usize = match count_str.parse() {
         Ok(n) => n,
         Err(e) => {
-            log_error(&format!("[address-fmt] 无法解析地址数量: raw='{}' err={:?}", count_str, e));
+            log_error(&format!("无法解析地址数量: raw='{}' err={:?}", count_str, e));
             return -1;
         }
     };
 
     if count == 0 {
-        log_error("[address-fmt] 未找到任何地址记录 (count=0)");
+        log_error("未找到任何地址记录，请先添加至少一条地址记录");
         return -1;
     }
 
-    log_info(&format!("[address-fmt] 发现 {} 条地址", count));
+    log_info(&format!("发现 {} 条地址", count));
     let mut success_count = 0;
 
     for i in 0..count {
-        log_info(&format!("[address-fmt] --- 处理地址[{}] ---", i));
+        log_info(&format!("--- 处理地址[{}] ---", i));
         let street = read_field(&format!("address[{}].street", i));
         let city = read_field(&format!("address[{}].city", i));
         let district = read_field(&format!("address[{}].district", i));
@@ -230,11 +230,11 @@ pub extern "C" fn run() -> i32 {
         let postal_code = read_field(&format!("address[{}].postalCode", i));
         let country = read_field(&format!("address[{}].country", i));
 
-        log_info(&format!("[address-fmt] 地址[{}] street='{}' city='{}' state='{}' postal='{}' country='{}' district='{}'",
+        log_info(&format!("地址[{}] street='{}' city='{}' state='{}' postal='{}' country='{}' district='{}'",
             i, street, city, state, postal_code, country, district));
 
         if street.is_empty() || city.is_empty() || country.is_empty() {
-            log_error(&format!("[address-fmt] 地址[{}] 缺少必需字段: street='{}' city='{}' country='{}'", i, street, city, country));
+            log_error(&format!("地址[{}] 缺少必需字段: street='{}' city='{}' country='{}'", i, street, city, country));
             continue;
         }
 
