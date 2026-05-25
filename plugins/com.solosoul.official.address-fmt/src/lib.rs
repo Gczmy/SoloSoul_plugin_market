@@ -183,9 +183,19 @@ fn format_default(addr: &Address) -> String {
     result
 }
 
-/// 安全读取字段
+/// 安全读取字段（带调试日志）
 fn read_field(path: &str) -> String {
-    get_field(path).unwrap_or_default().trim().to_string()
+    match get_field(path) {
+        Ok(value) => {
+            let trimmed = value.trim().to_string();
+            log_info(&format!("[address-fmt] read_field('{}') OK value='{}'", path, &trimmed[..trimmed.len().min(80)]));
+            trimmed
+        }
+        Err(e) => {
+            log_error(&format!("[address-fmt] read_field('{}') FAILED: {:?}", path, e));
+            String::new()
+        }
+    }
 }
 
 /// 插件入口
@@ -194,38 +204,37 @@ pub extern "C" fn run() -> i32 {
     log_info("Address Formatter 启动 — 格式化所有地址");
 
     let count_str = read_field("address.count");
+    log_info(&format!("[address-fmt] address.count raw='{}'", count_str));
     let count: usize = match count_str.parse() {
         Ok(n) => n,
-        Err(_) => {
-            log_error("无法读取地址数量");
+        Err(e) => {
+            log_error(&format!("[address-fmt] 无法解析地址数量: raw='{}' err={:?}", count_str, e));
             return -1;
         }
     };
 
     if count == 0 {
-        log_error("未找到任何地址记录");
+        log_error("[address-fmt] 未找到任何地址记录 (count=0)");
         return -1;
     }
 
+    log_info(&format!("[address-fmt] 发现 {} 条地址", count));
     let mut success_count = 0;
 
     for i in 0..count {
+        log_info(&format!("[address-fmt] --- 处理地址[{}] ---", i));
         let street = read_field(&format!("address[{}].street", i));
         let city = read_field(&format!("address[{}].city", i));
+        let district = read_field(&format!("address[{}].district", i));
         let state = read_field(&format!("address[{}].state", i));
         let postal_code = read_field(&format!("address[{}].postalCode", i));
         let country = read_field(&format!("address[{}].country", i));
-        let district = {
-            let d = read_field(&format!("address[{}].district", i));
-            if d.is_empty() {
-                read_field(&format!("address[{}].label", i))
-            } else {
-                d
-            }
-        };
+
+        log_info(&format!("[address-fmt] 地址[{}] street='{}' city='{}' state='{}' postal='{}' country='{}' district='{}'",
+            i, street, city, state, postal_code, country, district));
 
         if street.is_empty() || city.is_empty() || country.is_empty() {
-            log_error(&format!("地址[{}] 缺少必需字段: street, city, country 不能为空", i));
+            log_error(&format!("[address-fmt] 地址[{}] 缺少必需字段: street='{}' city='{}' country='{}'", i, street, city, country));
             continue;
         }
 
@@ -241,8 +250,20 @@ pub extern "C" fn run() -> i32 {
         let formatted = format_address(&addr);
         let country_label = normalize_country(&country);
 
+        // label/title 用于标识地址含义（家/公司/老家等）
+        let label = read_field(&format!("address[{}].label", i));
+        let display_label = if label.is_empty() {
+            read_field(&format!("address[{}].title", i))
+        } else {
+            label
+        };
+
         log_info(&format!("地址[{}] 国家识别: {} → {}", i, country, country_label));
-        log_info(&format!("地址[{}] 格式化结果: {}", i, formatted));
+        if display_label.is_empty() {
+            log_info(&format!("地址[{}] 格式化结果: {}", i, formatted));
+        } else {
+            log_info(&format!("地址[{}] 格式化结果: {} | {}", i, display_label, formatted));
+        }
         success_count += 1;
     }
 

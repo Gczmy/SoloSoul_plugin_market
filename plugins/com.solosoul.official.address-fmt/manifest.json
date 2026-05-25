@@ -12,6 +12,7 @@
     "address.count",
     "address.street",
     "address.city",
+    "address.district",
     "address.state",
     "address.postalCode",
     "address.country",
