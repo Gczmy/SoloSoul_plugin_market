@@ -250,13 +250,8 @@ pub extern "C" fn run() -> i32 {
         let formatted = format_address(&addr);
         let country_label = normalize_country(&country);
 
-        // label/title 用于标识地址含义（家/公司/老家等）
-        let label = read_field(&format!("address[{}].label", i));
-        let display_label = if label.is_empty() {
-            read_field(&format!("address[{}].title", i))
-        } else {
-            label
-        };
+        // title 用于标识地址含义（家/公司/老家等）
+        let display_label = read_field(&format!("address[{}].title", i));
 
         log_info(&format!("地址[{}] 国家识别: {} → {}", i, country, country_label));
         if display_label.is_empty() {

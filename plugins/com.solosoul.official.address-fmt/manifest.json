@@ -10,13 +10,13 @@
   "homepage": "https://github.com/Gczmy/SoloSoul_plugin_market/tree/main/plugins/com.solosoul.official.address-fmt",
   "required_fields": [
     "address.count",
+    "address.title",
     "address.street",
-    "address.city",
     "address.district",
+    "address.city",
     "address.state",
     "address.postalCode",
-    "address.country",
-    "address.label"
+    "address.country"
   ],
   "optional_fields": [],
   "network_policy": {
