@@ -1,6 +1,6 @@
 {
   "version": "1",
-  "updated_at": "2026-05-27T22:01:23Z",
+  "updated_at": "2026-05-27T22:02:27Z",
   "plugins": {
     "com.solosoul.official.address-fmt": {
       "name": "Address Formatter",
@@ -173,16 +173,16 @@
     "com.solosoul.official.emergency-card": {
       "name": "Emergency Card",
       "publisher": "SoloSoul Official",
-      "latest_version": "1.0.0",
+      "latest_version": "1.0.1",
       "versions": {
-        "1.0.0": {
-          "sha256": "1393aeb8367f818d63254b2489a50725459517aca14303718e09273f1b67c966",
+        "1.0.1": {
+          "sha256": "190e6db2fdf1fe0338d9ab66644fd2feb8b0752c8f22805fa8743e0c3292b63d",
           "plugin_api_version": "1.0",
           "min_app_version": "1.0.0",
           "max_app_version": "999.999.999",
           "download_url": "https://cdn.jsdelivr.net/gh/Gczmy/SoloSoul_plugin_market@main/plugins/com.solosoul.official.emergency-card/plugin.wasm",
           "raw_url": "https://raw.githubusercontent.com/Gczmy/SoloSoul_plugin_market/main/plugins/com.solosoul.official.emergency-card/plugin.wasm",
-          "released_at": "2026-05-27T21:52:43Z"
+          "released_at": "2026-05-27T22:00:00Z"
         }
       },
       "description": "紧急联系卡 — 生成包含医疗信息和紧急联系人的应急卡片",
