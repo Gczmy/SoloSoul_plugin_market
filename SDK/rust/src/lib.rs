@@ -74,6 +74,18 @@ extern "C" {
     /// 获取 Unix 时间戳（毫秒）
     fn solosoul_get_timestamp() -> i64;
 
+    /// 获取用户数据结构树（Phase 3）
+    ///
+    /// # 参数
+    /// - `out_ptr`: 输出缓冲区指针
+    /// - `out_cap`: 输出缓冲区容量
+    ///
+    /// # 返回值
+    /// - `0`: 成功
+    /// - `-1`: 错误（Vault 锁定、无数据等）
+    /// - `-4`: 缓冲区不足（out_cap 太小）
+    fn solosoul_get_data_structure_tree(out_ptr: *mut u8, out_cap: usize) -> i32;
+
     /// 发送结构化最终结果（Phase 2）
     ///
     /// # 参数
@@ -268,6 +280,53 @@ pub fn log_debug(message: &str) {
 /// ```
 pub fn get_timestamp() -> i64 {
     unsafe { solosoul_get_timestamp() }
+}
+
+// ============================================================================
+// Phase 3: 数据结构树查询
+// ============================================================================
+
+/// 获取用户数据结构树（元数据级别）
+///
+/// 返回 JSON 字符串，包含页面 → 分区 → 字段的元数据（不包含字段值）。
+///
+/// # 示例
+/// ```ignore
+/// let tree_json = get_data_structure_tree().expect("获取数据结构失败");
+/// ```
+pub fn get_data_structure_tree() -> Result<String, PluginError> {
+    const INITIAL_CAP: usize = 65536;
+    let mut buf: [MaybeUninit<u8>; INITIAL_CAP] = [MaybeUninit::uninit(); INITIAL_CAP];
+
+    let code = unsafe {
+        solosoul_get_data_structure_tree(
+            buf.as_mut_ptr() as *mut u8,
+            INITIAL_CAP,
+        )
+    };
+
+    if code != 0 {
+        return Err(PluginError::from_code(code));
+    }
+
+    // 查找 null terminator
+    let len = unsafe {
+        let mut end = INITIAL_CAP;
+        for (i, b) in buf.iter().enumerate() {
+            if unsafe { b.assume_init() } == 0 {
+                end = i;
+                break;
+            }
+        }
+        end
+    };
+
+    let bytes: Vec<u8> = buf[..len]
+        .iter()
+        .map(|b| unsafe { b.assume_init() })
+        .collect();
+
+    String::from_utf8(bytes).map_err(|_| PluginError::Unknown)
 }
 
 // ============================================================================
