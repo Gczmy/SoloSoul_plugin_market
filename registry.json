@@ -14,7 +14,8 @@
           "max_app_version": "999.999.999",
           "download_url": "https://cdn.jsdelivr.net/gh/Gczmy/SoloSoul_plugin_market@main/plugins/com.solosoul.official.address-fmt/plugin.wasm",
           "raw_url": "https://raw.githubusercontent.com/Gczmy/SoloSoul_plugin_market/main/plugins/com.solosoul.official.address-fmt/plugin.wasm",
-          "released_at": "2026-05-27T13:14:10Z"
+          "released_at": "2026-05-27T13:14:10Z",
+          "changelog": "Phase 2：迁移至 solosoul_result 结构化结果通道，结果以键值对卡片形式展示，失败时自动降级为日志输出"
         },
         "1.0.1": {
           "sha256": "cb629cecb3b980223ea2ea7ae2daf04df1336f9c0e9cb98bffa59c331b64fb58",
@@ -23,7 +24,8 @@
           "max_app_version": "999.999.999",
           "download_url": "https://cdn.jsdelivr.net/gh/Gczmy/SoloSoul_plugin_market@main/plugins/com.solosoul.official.address-fmt/plugin.wasm",
           "raw_url": "https://raw.githubusercontent.com/Gczmy/SoloSoul_plugin_market/main/plugins/com.solosoul.official.address-fmt/plugin.wasm",
-          "released_at": "2026-05-26T22:25:30Z"
+          "released_at": "2026-05-26T22:25:30Z",
+          "changelog": "修复字段读取兼容性：支持 address.title 与 address.label 双回退，批量授权对话框正确展示字段敏感度"
         },
         "1.0.0": {
           "sha256": "c48186c49a486ad795d3dc7fdfcf8030d7cfc76973b87bcb3938013e30d00ea8",
@@ -41,11 +43,21 @@
       "i18n": {
         "zh": {
           "name": "地址格式化器",
-          "description": "将 Vault 中的所有地址按目标国家/地区规范格式化输出。支持中国、美国、英国、日本、德国、法国、加拿大、澳大利亚、新加坡、韩国等10个国家/地区的地址格式。运行后会弹出对话框，按条展示格式化后的地址结果。"
+          "description": "将 Vault 中的所有地址按目标国家/地区规范格式化输出。支持中国、美国、英国、日本、德国、法国、加拿大、澳大利亚、新加坡、韩国等10个国家/地区的地址格式。运行后会弹出对话框，按条展示格式化后的地址结果。",
+          "changelog": {
+            "1.0.2": "结果展示升级为结构化卡片：每条地址以键值对形式清晰展示，支持一键复制。",
+            "1.0.1": "修复标题字段兼容性，支持地址的标题/标签双回退读取。",
+            "1.0.0": "初始版本：支持10个国家/地区的地址格式化。"
+          }
         },
         "en": {
           "name": "Address Formatter",
-          "description": "Format all addresses in the Vault according to target country/region standards. Supports 10 countries/regions including China, US, UK, Japan, Germany, France, Canada, Australia, Singapore, and South Korea."
+          "description": "Format all addresses in the Vault according to target country/region standards. Supports 10 countries/regions including China, US, UK, Japan, Germany, France, Canada, Australia, Singapore, and South Korea.",
+          "changelog": {
+            "1.0.2": "Upgraded to structured result cards: each address displayed as key-value pairs with one-click copy support.",
+            "1.0.1": "Fixed title field compatibility with dual fallback for address title/label.",
+            "1.0.0": "Initial release: address formatting for 10 countries/regions."
+          }
         }
       }
     },
