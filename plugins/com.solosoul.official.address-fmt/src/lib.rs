@@ -268,18 +268,26 @@ pub extern "C" fn run() -> i32 {
         } else {
             display_label
         };
-        result_pairs.push(format!("{}\t{}", label, formatted));
+        // 存储：label\tformatted\tcountry\tcountry_code
+        result_pairs.push(format!("{}\t{}\t{}\t{}", label, formatted, country, country_label));
     }
 
-    // Phase 2: 发送结构化结果（key_value 卡片）
+    // Phase 2: 发送结构化结果（key_value 卡片，带 tag 元数据）
     if !result_pairs.is_empty() {
         let pairs_json: Vec<String> = result_pairs
             .iter()
             .map(|v| {
-                let parts: Vec<&str> = v.splitn(2, '\t').collect();
-                let key = if parts.len() == 2 { parts[0] } else { "地址" };
-                let value = if parts.len() == 2 { parts[1] } else { parts[0] };
-                format!(r#"{{"key":"{}","value":"{}"}}"#, escape_json(key), escape_json(value))
+                let parts: Vec<&str> = v.splitn(4, '\t').collect();
+                let key = parts.get(0).unwrap_or(&"地址");
+                let value = parts.get(1).unwrap_or(&"");
+                let country_name = parts.get(2).unwrap_or(&"");
+                let country_code = parts.get(3).unwrap_or(&"");
+                let tag_json = if !country_name.is_empty() {
+                    format!(r#","tag":"{}","tagCode":"{}""#, escape_json(country_name), escape_json(country_code))
+                } else {
+                    String::new()
+                };
+                format!(r#"{{"key":"{}","value":"{}"{}}}"#, escape_json(key), escape_json(value), tag_json)
             })
             .collect();
         let json = format!(
