@@ -1,6 +1,6 @@
 {
   "version": "1",
-  "updated_at": "2026-05-27T13:14:10Z",
+  "updated_at": "2026-05-27T19:04:05Z",
   "plugins": {
     "com.solosoul.official.address-fmt": {
       "name": "Address Formatter",
@@ -14,8 +14,7 @@
           "max_app_version": "999.999.999",
           "download_url": "https://cdn.jsdelivr.net/gh/Gczmy/SoloSoul_plugin_market@main/plugins/com.solosoul.official.address-fmt/plugin.wasm",
           "raw_url": "https://raw.githubusercontent.com/Gczmy/SoloSoul_plugin_market/main/plugins/com.solosoul.official.address-fmt/plugin.wasm",
-          "released_at": "2026-05-27T13:14:10Z",
-          "changelog": "Phase 2：迁移至 solosoul_result 结构化结果通道，结果以键值对卡片形式展示，失败时自动降级为日志输出"
+          "released_at": "2026-05-27T13:14:10Z"
         },
         "1.0.1": {
           "sha256": "cb629cecb3b980223ea2ea7ae2daf04df1336f9c0e9cb98bffa59c331b64fb58",
