@@ -1,6 +1,6 @@
 {
   "version": "1",
-  "updated_at": "2026-05-27T22:06:37Z",
+  "updated_at": "2026-05-27T22:07:41Z",
   "plugins": {
     "com.solosoul.official.address-fmt": {
       "name": "Address Formatter",
@@ -285,16 +285,16 @@
     "com.solosoul.official.identity-timeline": {
       "name": "Identity Timeline",
       "publisher": "SoloSoul Official",
-      "latest_version": "1.0.0",
+      "latest_version": "1.0.1",
       "versions": {
-        "1.0.0": {
-          "sha256": "7ef3b7b6aad73df653ff78f2b301805123adc33422a4de7ff4e3ec35ad5ea732",
+        "1.0.1": {
+          "sha256": "a8aaa084353f1a771074894232f0c4217506e00776c90630efd21445eeb27abb",
           "plugin_api_version": "1.0",
           "min_app_version": "1.0.0",
           "max_app_version": "999.999.999",
           "download_url": "https://cdn.jsdelivr.net/gh/Gczmy/SoloSoul_plugin_market@main/plugins/com.solosoul.official.identity-timeline/plugin.wasm",
           "raw_url": "https://raw.githubusercontent.com/Gczmy/SoloSoul_plugin_market/main/plugins/com.solosoul.official.identity-timeline/plugin.wasm",
-          "released_at": "2026-05-27T21:52:43Z"
+          "released_at": "2026-05-27T22:00:00Z"
         }
       },
       "description": "身份时间线 — 按时间顺序展示教育、工作、证件等人生里程碑",
