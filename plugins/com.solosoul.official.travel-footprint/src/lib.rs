@@ -4,7 +4,7 @@
 //! 分析 Vault 中的旅行记录，生成到访国家统计和分类报告。
 
 #[cfg(not(test))]
-use solosoul_plugin_sdk::{get_field, log_error, log_info};
+use solosoul_plugin_sdk::{get_field, log_error, log_info, send_result_json};
 
 /// 国家到大洲的简化映射表
 fn country_to_continent(country: &str) -> &'static str {
@@ -182,6 +182,14 @@ fn chunk_string(s: &str, chunk_size: usize) -> Vec<String> {
         .collect()
 }
 
+/// 简单的 JSON 字符串转义
+fn escape_json(s: &str) -> String {
+    s.replace("\\", "\\\\")
+        .replace("\"", "\\\"")
+        .replace("\n", "\\n")
+        .replace("\r", "\\r")
+}
+
 #[cfg(not(test))]
 #[no_mangle]
 pub extern "C" fn run() -> i32 {
@@ -207,6 +215,54 @@ pub extern "C" fn run() -> i32 {
     for line in report.lines() {
         log_info(line);
     }
+
+    // Phase 2: 结构化结果
+    let parsed = parse_countries(&countries);
+    let total = parsed.len();
+
+    let mut asia = Vec::new();
+    let mut europe = Vec::new();
+    let mut north_america = Vec::new();
+    let mut oceania = Vec::new();
+    let mut south_america = Vec::new();
+    let mut africa = Vec::new();
+    let mut other = Vec::new();
+
+    for country in &parsed {
+        match country_to_continent(country) {
+            "亚洲" => asia.push(country.clone()),
+            "欧洲" => europe.push(country.clone()),
+            "北美洲" => north_america.push(country.clone()),
+            "大洋洲" => oceania.push(country.clone()),
+            "南美洲" => south_america.push(country.clone()),
+            "非洲" => africa.push(country.clone()),
+            _ => other.push(country.clone()),
+        }
+    }
+
+    let mut pairs: Vec<(&str, String)> = Vec::new();
+    if !nationality.is_empty() { pairs.push(("国籍", nationality.clone())); }
+    pairs.push(("到访国家数", total.to_string()));
+    if !visa_count.is_empty() { pairs.push(("签证数量", visa_count.clone())); }
+    if !asia.is_empty() { pairs.push(("亚洲", asia.join(", "))); }
+    if !europe.is_empty() { pairs.push(("欧洲", europe.join(", "))); }
+    if !north_america.is_empty() { pairs.push(("北美洲", north_america.join(", "))); }
+    if !oceania.is_empty() { pairs.push(("大洋洲", oceania.join(", "))); }
+    if !south_america.is_empty() { pairs.push(("南美洲", south_america.join(", "))); }
+    if !africa.is_empty() { pairs.push(("非洲", africa.join(", "))); }
+    if !other.is_empty() { pairs.push(("其他", other.join(", "))); }
+
+    let pairs_json: Vec<String> = pairs
+        .iter()
+        .map(|(k, v)| format!(r#"{{"key":"{}","value":"{}"}}"#, escape_json(k), escape_json(v)))
+        .collect();
+
+    let result_json = format!(
+        r#"{{"type":"key_value","title":"旅行足迹","pairs":[{}],"text":"{}"}}"#,
+        pairs_json.join(","),
+        escape_json(&report)
+    );
+    let _ = send_result_json(&result_json);
 
     0
 }

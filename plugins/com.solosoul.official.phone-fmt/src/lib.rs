@@ -4,7 +4,7 @@
 //! 按国家规范格式化电话号码。
 
 #[cfg(not(test))]
-use solosoul_plugin_sdk::{get_field, log_error, log_info};
+use solosoul_plugin_sdk::{get_field, log_error, log_info, send_result_json};
 
 /// 提取纯数字
 fn digits_only(s: &str) -> String {
@@ -150,6 +150,14 @@ fn format_kr(digits: &str) -> Option<String> {
     Some(format!("+82 {}-{}-{}", &d[..2], &d[2..6], &d[6..10]))
 }
 
+/// 简单的 JSON 字符串转义
+fn escape_json(s: &str) -> String {
+    s.replace("\\", "\\\\")
+        .replace("\"", "\\\"")
+        .replace("\n", "\\n")
+        .replace("\r", "\\r")
+}
+
 /// 通用：按 3-3-4 分组
 fn format_generic(digits: &str) -> Option<String> {
     let chunks: Vec<String> = digits.chars().collect::<Vec<_>>().chunks(3).map(|c| c.iter().collect()).collect();
@@ -180,6 +188,18 @@ pub extern "C" fn run() -> i32 {
         Some(formatted) => {
             log_info(&format!("原始号码: {}", phone));
             log_info(&format!("格式化后: {}", formatted));
+
+            // Phase 2: 结构化结果
+            let pairs_json = vec![
+                format!(r#"{{"key":"原始号码","value":"{}"}}"#, escape_json(&phone)),
+                format!(r#"{{"key":"格式化后","value":"{}"}}"#, escape_json(&formatted)),
+            ];
+            let result_json = format!(
+                r#"{{"type":"key_value","title":"电话号码格式化","pairs":[{}]}}"#,
+                pairs_json.join(",")
+            );
+            let _ = send_result_json(&result_json);
+
             0
         }
         None => {

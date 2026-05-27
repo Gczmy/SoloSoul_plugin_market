@@ -4,7 +4,7 @@
 //! 从 Vault 联系信息生成标准 vCard 3.0 数字名片。
 
 #[cfg(not(test))]
-use solosoul_plugin_sdk::{get_field, log_info};
+use solosoul_plugin_sdk::{get_field, log_info, send_result_json};
 
 /// vCard 3.0 字段转义（逗号、分号、反斜杠）
 fn vcard_escape(s: &str) -> String {
@@ -130,6 +130,14 @@ fn generate_text_card(
     lines.join("\n")
 }
 
+/// 简单的 JSON 字符串转义
+fn escape_json(s: &str) -> String {
+    s.replace("\\", "\\\\")
+        .replace("\"", "\\\"")
+        .replace("\n", "\\n")
+        .replace("\r", "\\r")
+}
+
 fn truncate(s: &str, max_len: usize) -> String {
     let chars: Vec<char> = s.chars().collect();
     if chars.len() <= max_len {
@@ -159,6 +167,36 @@ pub extern "C" fn run() -> i32 {
     let text_card = generate_text_card(&name, &email, &phone, &website, &title, &org);
     let vcard = generate_vcard(&name, &email, &phone, &website, &title, &org, &street, &city, &state, &postal, &country);
 
+    // Phase 2: 结构化结果
+    let mut pairs: Vec<(String, String)> = Vec::new();
+    if !name.is_empty() { pairs.push(("姓名".to_string(), name.clone())); }
+    if !title.is_empty() || !org.is_empty() {
+        let title_org = if !title.is_empty() && !org.is_empty() {
+            format!("{} @ {}", title, org)
+        } else if !title.is_empty() {
+            title.clone()
+        } else {
+            org.clone()
+        };
+        pairs.push(("职位/组织".to_string(), title_org));
+    }
+    if !phone.is_empty() { pairs.push(("电话".to_string(), phone.clone())); }
+    if !email.is_empty() { pairs.push(("邮箱".to_string(), email.clone())); }
+    if !website.is_empty() { pairs.push(("网站".to_string(), website.clone())); }
+
+    let pairs_json: Vec<String> = pairs
+        .iter()
+        .map(|(k, v)| format!(r#"{{"key":"{}","value":"{}"}}"#, escape_json(k), escape_json(v)))
+        .collect();
+
+    let result_json = format!(
+        r#"{{"type":"key_value","title":"数字名片","pairs":[{}],"text":"{}"}}"#,
+        pairs_json.join(","),
+        escape_json(&vcard)
+    );
+    let _ = send_result_json(&result_json);
+
+    // 同时保留日志输出
     log_info("【文本名片】");
     for line in text_card.lines() {
         log_info(line);

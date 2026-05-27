@@ -4,7 +4,7 @@
 //! 根据目的地和季节智能推荐旅行打包清单。
 
 #[cfg(not(test))]
-use solosoul_plugin_sdk::{get_field, log_info};
+use solosoul_plugin_sdk::{get_field, log_info, send_result_json};
 
 /// 行李项类别
 struct PackingCategory {
@@ -192,6 +192,14 @@ fn format_output(destination: &str, categories: &[PackingCategory]) -> String {
     lines.join("\n")
 }
 
+/// 简单的 JSON 字符串转义
+fn escape_json(s: &str) -> String {
+    s.replace("\\", "\\\\")
+        .replace("\"", "\\\"")
+        .replace("\n", "\\n")
+        .replace("\r", "\\r")
+}
+
 fn truncate(s: &str, max_len: usize) -> String {
     let chars: Vec<char> = s.chars().collect();
     if chars.len() <= max_len {
@@ -220,6 +228,24 @@ pub extern "C" fn run() -> i32 {
     let categories = generate_packing_list(&destination, &duration, &season, has_passport, has_visa);
     let output = format_output(&destination, &categories);
 
+    // Phase 2: 结构化结果
+    let pairs_json: Vec<String> = categories
+        .iter()
+        .map(|cat| {
+            let items_str = cat.items.join("、");
+            format!(r#"{{"key":"{} {}","value":"{}"}}"#, escape_json(cat.icon), escape_json(cat.name), escape_json(&items_str))
+        })
+        .collect();
+
+    let result_json = format!(
+        r#"{{"type":"key_value","title":"{} 行李清单","pairs":[{}],"text":"{}"}}"#,
+        escape_json(&destination),
+        pairs_json.join(","),
+        escape_json(&output)
+    );
+    let _ = send_result_json(&result_json);
+
+    // 同时保留日志输出
     for line in output.lines() {
         log_info(line);
     }

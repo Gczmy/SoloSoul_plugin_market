@@ -4,7 +4,7 @@
 //! 从 Vault 档案生成标准 Markdown 格式简历。
 
 #[cfg(not(test))]
-use solosoul_plugin_sdk::{get_field, log_info};
+use solosoul_plugin_sdk::{get_field, log_info, send_result_json};
 
 /// 简历数据
 struct ResumeData {
@@ -176,6 +176,14 @@ fn build_resume(data: &ResumeData) -> String {
     lines.join("\n")
 }
 
+/// 简单的 JSON 字符串转义
+fn escape_json(s: &str) -> String {
+    s.replace("\\", "\\\\")
+        .replace("\"", "\\\"")
+        .replace("\n", "\\n")
+        .replace("\r", "\\r")
+}
+
 /// 插件入口
 #[cfg(not(test))]
 #[no_mangle]
@@ -187,6 +195,59 @@ pub extern "C" fn run() -> i32 {
     for line in resume.lines() {
         log_info(line);
     }
+
+    // Phase 2: 结构化结果
+    let mut pairs: Vec<(&str, String)> = Vec::new();
+    if !data.name.is_empty() { pairs.push(("姓名", data.name.clone())); }
+    if !data.email.is_empty() { pairs.push(("邮箱", data.email.clone())); }
+    if !data.phone.is_empty() { pairs.push(("电话", data.phone.clone())); }
+    if !data.address.is_empty() { pairs.push(("地址", data.address.clone())); }
+    if !data.website.is_empty() { pairs.push(("网站", data.website.clone())); }
+    if !data.linkedin.is_empty() { pairs.push(("LinkedIn", data.linkedin.clone())); }
+    if !data.company.is_empty() || !data.position.is_empty() {
+        let work = if !data.position.is_empty() && !data.company.is_empty() {
+            format!("{} @ {}", data.position, data.company)
+        } else if !data.position.is_empty() {
+            data.position.clone()
+        } else {
+            data.company.clone()
+        };
+        pairs.push(("工作", work));
+    }
+    if !data.emp_start.is_empty() || !data.emp_end.is_empty() {
+        let duration = if data.emp_end.is_empty() {
+            format!("{} - 至今", data.emp_start)
+        } else {
+            format!("{} - {}", data.emp_start, data.emp_end)
+        };
+        pairs.push(("在职时间", duration));
+    }
+    if !data.institution.is_empty() || !data.degree.is_empty() {
+        let edu = if !data.degree.is_empty() && !data.institution.is_empty() {
+            format!("{} — {}", data.degree, data.institution)
+        } else if !data.degree.is_empty() {
+            data.degree.clone()
+        } else {
+            data.institution.clone()
+        };
+        pairs.push(("教育", edu));
+    }
+    if !data.skill_primary.is_empty() { pairs.push(("核心技能", data.skill_primary.clone())); }
+    if !data.skill_secondary.is_empty() { pairs.push(("其他技能", data.skill_secondary.clone())); }
+    if !data.lang_native.is_empty() { pairs.push(("母语", data.lang_native.clone())); }
+    if !data.lang_others.is_empty() { pairs.push(("其他语言", data.lang_others.clone())); }
+
+    let pairs_json: Vec<String> = pairs
+        .iter()
+        .map(|(k, v)| format!(r#"{{"key":"{}","value":"{}"}}"#, escape_json(k), escape_json(v)))
+        .collect();
+
+    let result_json = format!(
+        r#"{{"type":"key_value","title":"个人简历","pairs":[{}],"text":"{}"}}"#,
+        pairs_json.join(","),
+        escape_json(&resume)
+    );
+    let _ = send_result_json(&result_json);
 
     0
 }

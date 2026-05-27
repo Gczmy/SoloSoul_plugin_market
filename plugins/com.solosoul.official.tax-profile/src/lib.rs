@@ -5,7 +5,7 @@
 //! ⚠️ 本插件仅做数据整理，不提供税务建议。
 
 #[cfg(not(test))]
-use solosoul_plugin_sdk::{get_field, log_error, log_info};
+use solosoul_plugin_sdk::{get_field, log_error, log_info, send_result_json};
 
 /// 税务数据
 struct TaxData {
@@ -134,6 +134,14 @@ fn truncate(s: &str, max_len: usize) -> String {
     }
 }
 
+/// 简单的 JSON 字符串转义
+fn escape_json(s: &str) -> String {
+    s.replace("\\", "\\\\")
+        .replace("\"", "\\\"")
+        .replace("\n", "\\n")
+        .replace("\r", "\\r")
+}
+
 #[cfg(not(test))]
 #[no_mangle]
 pub extern "C" fn run() -> i32 {
@@ -150,6 +158,30 @@ pub extern "C" fn run() -> i32 {
     for line in report.lines() {
         log_info(line);
     }
+
+    // Phase 2: 结构化结果
+    let tax_country = infer_tax_country(&data.tax_country, &data.residence_country);
+    let mut pairs: Vec<(&str, String)> = Vec::new();
+    if !data.name.is_empty() { pairs.push(("纳税人", data.name.clone())); }
+    if !data.dob.is_empty() { pairs.push(("出生日期", data.dob.clone())); }
+    pairs.push(("税务居民国", tax_country.clone()));
+    if !data.tax_id.is_empty() { pairs.push(("税号", mask_sensitive(&data.tax_id))); }
+    if !data.address.is_empty() { pairs.push(("住址", data.address.clone())); }
+    if !data.employer.is_empty() { pairs.push(("雇主", data.employer.clone())); }
+    if !data.position.is_empty() { pairs.push(("职位", data.position.clone())); }
+    if !data.income_source.is_empty() { pairs.push(("收入来源", data.income_source.clone())); }
+
+    let pairs_json: Vec<String> = pairs
+        .iter()
+        .map(|(k, v)| format!(r#"{{"key":"{}","value":"{}"}}"#, escape_json(k), escape_json(v)))
+        .collect();
+
+    let result_json = format!(
+        r#"{{"type":"key_value","title":"税务档案","pairs":[{}],"text":"{}"}}"#,
+        pairs_json.join(","),
+        escape_json(&report)
+    );
+    let _ = send_result_json(&result_json);
 
     0
 }

@@ -5,7 +5,7 @@
 
 use hmac::{Hmac, Mac};
 use sha1::Sha1;
-use solosoul_plugin_sdk::{get_field, get_timestamp, log_error, log_info};
+use solosoul_plugin_sdk::{get_field, get_timestamp, log_error, log_info, send_result_json};
 
 /// HMAC-SHA1 类型别名
 type HmacSha1 = Hmac<Sha1>;
@@ -100,6 +100,14 @@ fn format_otp(otp: u32, digits: u32) -> String {
     format!("{:0width$}", otp, width = digits as usize)
 }
 
+/// 简单的 JSON 字符串转义
+fn escape_json(s: &str) -> String {
+    s.replace("\\", "\\\\")
+        .replace("\"", "\\\"")
+        .replace("\n", "\\n")
+        .replace("\r", "\\r")
+}
+
 /// 插件入口
 #[no_mangle]
 pub extern "C" fn run() -> i32 {
@@ -143,6 +151,18 @@ pub extern "C" fn run() -> i32 {
             if remaining <= 5 {
                 log_info("⚠️ 验证码即将过期，请等待下一轮");
             }
+
+            // Phase 2: 结构化结果
+            let pairs_json = vec![
+                format!(r#"{{"key":"标签","value":"{}"}}"#, escape_json(&label)),
+                format!(r#"{{"key":"验证码","value":"{}"}}"#, escape_json(&otp_str)),
+                format!(r#"{{"key":"剩余时间","value":"{} 秒"}}"#, remaining),
+            ];
+            let result_json = format!(
+                r#"{{"type":"key_value","title":"TOTP 动态验证码","pairs":[{}]}}"#,
+                pairs_json.join(",")
+            );
+            let _ = send_result_json(&result_json);
 
             0
         }
