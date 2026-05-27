@@ -268,15 +268,19 @@ pub extern "C" fn run() -> i32 {
         } else {
             display_label
         };
-        result_pairs.push(format!("{} | {}", label, formatted));
+        result_pairs.push(format!("{}\t{}", label, formatted));
     }
 
     // Phase 2: 发送结构化结果（key_value 卡片）
     if !result_pairs.is_empty() {
         let pairs_json: Vec<String> = result_pairs
             .iter()
-            .enumerate()
-            .map(|(i, v)| format!(r#"{{"key":"地址 {}","value":"{}"}}"#, i + 1, escape_json(v)))
+            .map(|v| {
+                let parts: Vec<&str> = v.splitn(2, '\t').collect();
+                let key = if parts.len() == 2 { parts[0] } else { "地址" };
+                let value = if parts.len() == 2 { parts[1] } else { parts[0] };
+                format!(r#"{{"key":"{}","value":"{}"}}"#, escape_json(key), escape_json(value))
+            })
             .collect();
         let json = format!(
             r#"{{"type":"key_value","title":"地址格式化结果","pairs":[{}]}}"#,
@@ -301,9 +305,23 @@ pub extern "C" fn run() -> i32 {
     }
 }
 
-/// 简单的 JSON 字符串转义
+/// JSON 字符串转义（处理所有标准转义字符）
 fn escape_json(s: &str) -> String {
-    s.replace('\\', "\\\\").replace('"', "\\\"").replace('\n', "\\n").replace('\r', "\\r")
+    let mut result = String::with_capacity(s.len());
+    for ch in s.chars() {
+        match ch {
+            '\\' => result.push_str("\\\\"),
+            '"' => result.push_str("\\\""),
+            '\n' => result.push_str("\\n"),
+            '\r' => result.push_str("\\r"),
+            '\t' => result.push_str("\\t"),
+            '\u{0008}' => result.push_str("\\b"),
+            '\u{000C}' => result.push_str("\\f"),
+            c if c < '\u{0020}' => result.push_str(&format!("\\u{:04x}", c as u32)),
+            c => result.push(c),
+        }
+    }
+    result
 }
 
 // ============================================================================
