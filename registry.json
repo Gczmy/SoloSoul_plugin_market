@@ -1,6 +1,6 @@
 {
   "version": "1",
-  "updated_at": "2026-05-27T22:02:27Z",
+  "updated_at": "2026-05-27T22:03:55Z",
   "plugins": {
     "com.solosoul.official.address-fmt": {
       "name": "Address Formatter",
@@ -201,16 +201,16 @@
     "com.solosoul.official.expiry-guardian": {
       "name": "Expiry Guardian",
       "publisher": "SoloSoul Official",
-      "latest_version": "1.0.0",
+      "latest_version": "1.0.1",
       "versions": {
-        "1.0.0": {
-          "sha256": "f13160cdd4e38c885cfbb7e3d00b793f7e6c3ed6ceda912551ab1f92c173b88d",
+        "1.0.1": {
+          "sha256": "c6c9a49dac3ef1b5db5b192772a3770400791ad47c4920e901d4addc4495449f",
           "plugin_api_version": "1.0",
           "min_app_version": "1.0.0",
           "max_app_version": "999.999.999",
           "download_url": "https://cdn.jsdelivr.net/gh/Gczmy/SoloSoul_plugin_market@main/plugins/com.solosoul.official.expiry-guardian/plugin.wasm",
           "raw_url": "https://raw.githubusercontent.com/Gczmy/SoloSoul_plugin_market/main/plugins/com.solosoul.official.expiry-guardian/plugin.wasm",
-          "released_at": "2026-05-27T21:52:43Z"
+          "released_at": "2026-05-27T22:00:00Z"
         }
       },
       "description": "证件到期卫士 — 扫描所有证件有效期并预警",
