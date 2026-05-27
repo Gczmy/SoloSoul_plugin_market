@@ -4,7 +4,7 @@
 //! 为护照/签证/身份证到期日生成 iCalendar (.ics) 格式的提醒事件。
 
 #[cfg(not(test))]
-use solosoul_plugin_sdk::{get_field, log_info};
+use solosoul_plugin_sdk::{get_field, log_info, send_result_json};
 
 /// 事件定义
 struct CalendarEvent {
@@ -13,6 +13,8 @@ struct CalendarEvent {
     description: String,
     date: String, // YYYYMMDD
     alarm_days_before: i32,
+    kind: String, // passport, visa, idcard, card
+    original_date: String, // 原始日期（用于展示）
 }
 
 /// 解析日期为 YYYYMMDD 格式（支持 ISO 和 YYMMDD）
@@ -29,6 +31,15 @@ fn to_ics_date(date_str: &str) -> Option<String> {
     } else {
         None
     }
+}
+
+/// 简单的 JSON 字符串转义
+fn escape_json(s: &str) -> String {
+    s.replace("\\", "\\\\")
+        .replace("\"", "\\\"")
+        .replace("\n", "\\n")
+        .replace("\r", "\\r")
+        .replace("\t", "\\t")
 }
 
 /// 生成 iCalendar VEVENT 块
@@ -101,6 +112,8 @@ pub extern "C" fn run() -> i32 {
                 description: format!("您的护照将于 {} 到期，请提前办理续签。", date),
                 date: ics_date,
                 alarm_days_before: 90,
+                kind: "passport".to_string(),
+                original_date: date,
             });
             event_count += 1;
         }
@@ -115,6 +128,8 @@ pub extern "C" fn run() -> i32 {
                 description: format!("您的签证将于 {} 到期，请提前办理续签。", date),
                 date: ics_date,
                 alarm_days_before: 30,
+                kind: "visa".to_string(),
+                original_date: date,
             });
             event_count += 1;
         }
@@ -129,6 +144,8 @@ pub extern "C" fn run() -> i32 {
                 description: format!("您的身份证将于 {} 到期，请提前办理换领。", date),
                 date: ics_date,
                 alarm_days_before: 60,
+                kind: "idcard".to_string(),
+                original_date: date,
             });
             event_count += 1;
         }
@@ -143,6 +160,8 @@ pub extern "C" fn run() -> i32 {
                 description: format!("您的信用卡将于 {} 到期，请联系银行换卡。", date),
                 date: ics_date,
                 alarm_days_before: 30,
+                kind: "card".to_string(),
+                original_date: date,
             });
             event_count += 1;
         }
@@ -154,6 +173,32 @@ pub extern "C" fn run() -> i32 {
     }
 
     let ics = generate_ics(&events);
+
+    // Phase 2: 发送结构化结果（日历事件卡片 + 可导出的 ICS）
+    let events_json: Vec<String> = events
+        .iter()
+        .map(|e| {
+            format!(
+                r#"{{"kind":"{}","summary":"{}","date":"{}","dateIcs":"{}","alarmDays":{},"description":"{}"}}"#,
+                escape_json(&e.kind),
+                escape_json(&e.summary),
+                escape_json(&e.original_date),
+                escape_json(&e.date),
+                e.alarm_days_before,
+                escape_json(&e.description)
+            )
+        })
+        .collect();
+
+    let result_json = format!(
+        r#"{{"type":"calendar_events","title":"日历提醒事件","eventCount":{},"events":[{}],"ics":"{}"}}"#,
+        event_count,
+        events_json.join(","),
+        escape_json(&ics)
+    );
+    let _ = send_result_json(&result_json);
+
+    // 同时保留日志输出供调试
     log_info("【iCalendar (.ics) 输出】");
     log_info("（可复制到系统日历软件导入）");
     log_info("");
