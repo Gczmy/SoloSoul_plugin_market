@@ -4,7 +4,15 @@
 //! 将 Vault 中的个人联系信息导出为 CSV 格式。
 
 #[cfg(not(test))]
-use solosoul_plugin_sdk::{get_field, log_info};
+use solosoul_plugin_sdk::{get_field, log_info, send_result_json};
+
+/// 简单的 JSON 字符串转义
+fn escape_json(s: &str) -> String {
+    s.replace("\\", "\\\\")
+        .replace("\"", "\\\"")
+        .replace("\n", "\\n")
+        .replace("\r", "\\r")
+}
 
 /// CSV 字段转义
 fn csv_escape(s: &str) -> String {
@@ -66,6 +74,24 @@ pub extern "C" fn run() -> i32 {
     ];
 
     let csv = generate_csv(&data);
+
+    // Phase 2: 发送结构化结果（key_value 卡片 + CSV 导出）
+    let pairs_json: Vec<String> = data
+        .iter()
+        .filter(|(_, v)| !v.is_empty())
+        .map(|(k, v)| {
+            format!(r#"{{"key":"{}","value":"{}"}}"#, escape_json(k), escape_json(v))
+        })
+        .collect();
+
+    let result_json = format!(
+        r#"{{"type":"key_value","title":"联系人信息","pairs":[{}],"csv":"{}"}}"#,
+        pairs_json.join(","),
+        escape_json(&csv)
+    );
+    let _ = send_result_json(&result_json);
+
+    // 同时保留日志输出供调试
     log_info("【CSV 输出】（可复制到 Excel/Numbers）");
     log_info("");
     for line in csv.lines() {

@@ -1,6 +1,10 @@
 {
   "version": "1",
-  "updated_at": "2026-05-27T21:23:07Z",
+<<<<<<< HEAD
+  "updated_at": "2026-05-27T21:42:18Z",
+=======
+  "updated_at": "2026-05-27T21:42:18Z",
+>>>>>>> 02da830 (feat(contact-exporter): 结构化 key_value 结果输出，支持 CSV 导出)
   "plugins": {
     "com.solosoul.official.address-fmt": {
       "name": "Address Formatter",
@@ -70,10 +74,10 @@
     "com.solosoul.official.contact-exporter": {
       "name": "Contact Exporter",
       "publisher": "SoloSoul Official",
-      "latest_version": "1.0.0",
+      "latest_version": "1.0.1",
       "versions": {
-        "1.0.0": {
-          "sha256": "86ed4baf1a5e96a2b11cf91d42b6d65dc0545cb558b4affc8d56bdc6a3272f8f",
+        "1.0.1": {
+          "sha256": "83e5e759d20d9d35a6284a84dfc8919a24edad1d6bf5772910e76749433bf250",
           "plugin_api_version": "1.0",
           "min_app_version": "1.0.0",
           "max_app_version": "999.999.999",
