@@ -4,7 +4,7 @@
 //! 扫描 Vault 各分区，计算档案完整度百分比并给出补充建议。
 
 #[cfg(not(test))]
-use solosoul_plugin_sdk::{get_field, log_info};
+use solosoul_plugin_sdk::{get_field, log_info, send_result_json};
 
 /// 分区定义
 struct Section {
@@ -125,6 +125,14 @@ fn progress_bar(percentage: u32, width: usize) -> String {
     ) + "%"
 }
 
+/// 简单的 JSON 字符串转义
+fn escape_json(s: &str) -> String {
+    s.replace("\\", "\\\\")
+        .replace("\"", "\\\"")
+        .replace("\n", "\\n")
+        .replace("\r", "\\r")
+}
+
 /// 生成分区报告
 fn generate_report(results: &[(String, u32, Vec<String>)]) -> String {
     let total_fields: usize = SECTIONS.iter().map(|s| s.fields.len()).sum();
@@ -213,6 +221,54 @@ pub extern "C" fn run() -> i32 {
     }
 
     let report = generate_report(&results);
+
+    // Phase 2: 发送结构化结果
+    let sections_json: Vec<String> = results
+        .iter()
+        .map(|(name, pct, missing)| {
+            let section = SECTIONS.iter().find(|s| s.name == name.as_str()).unwrap_or(&SECTIONS[0]);
+            let total = section.fields.len() as u32;
+            let filled = (*pct as u32 * total / 100).min(total);
+            let missing_json: Vec<String> = missing.iter().map(|m| format!(r#""{}""#, escape_json(m))).collect();
+            format!(
+                r#"{{"name":"{}","icon":"{}","percentage":{},"totalFields":{},"filledFields":{},"missing":[{}]}}"#,
+                escape_json(name),
+                escape_json(section.icon),
+                pct,
+                total,
+                filled,
+                missing_json.join(",")
+            )
+        })
+        .collect();
+
+    let total_fields: usize = SECTIONS.iter().map(|s| s.fields.len()).sum();
+    let filled_fields: usize = results
+        .iter()
+        .map(|(name, pct, _)| {
+            let section = SECTIONS.iter().find(|s| s.name == name.as_str()).unwrap_or(&SECTIONS[0]);
+            (*pct as usize * section.fields.len() / 100).min(section.fields.len())
+        })
+        .sum();
+    let overall = if total_fields > 0 { (filled_fields * 100 / total_fields) as u32 } else { 0 };
+
+    let message = if overall >= 80 {
+        "档案非常完整！"
+    } else if overall >= 50 {
+        "档案基本完成，继续补充细节。"
+    } else {
+        "档案尚有较大完善空间。"
+    };
+
+    let result_json = format!(
+        r#"{{"type":"data_completeness","title":"档案完整度报告","overall":{},"sections":[{}],"message":"{}"}}"#,
+        overall,
+        sections_json.join(","),
+        escape_json(message)
+    );
+    let _ = send_result_json(&result_json);
+
+    // 同时保留日志输出
     for line in report.lines() {
         log_info(line);
     }

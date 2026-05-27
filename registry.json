@@ -1,6 +1,14 @@
 {
   "version": "1",
-  "updated_at": "2026-05-27T21:42:33Z",
+<<<<<<< HEAD
+  "updated_at": "2026-05-27T21:52:28Z",
+=======
+<<<<<<< HEAD
+  "updated_at": "2026-05-27T21:52:28Z",
+=======
+  "updated_at": "2026-05-27T21:52:28Z",
+>>>>>>> 02da830 (feat(contact-exporter): 结构化 key_value 结果输出，支持 CSV 导出)
+>>>>>>> 95ac5ca (feat(data-completeness): 结构化结果输出，支持 data_completeness 卡片)
   "plugins": {
     "com.solosoul.official.address-fmt": {
       "name": "Address Formatter",
@@ -89,10 +97,10 @@
     "com.solosoul.official.data-completeness": {
       "name": "Data Completeness",
       "publisher": "SoloSoul Official",
-      "latest_version": "1.0.0",
+      "latest_version": "1.0.1",
       "versions": {
-        "1.0.0": {
-          "sha256": "4264164f885d78e574201e98c7a3d11ee42f2c56f2a0c3427095e10220d1c8fa",
+        "1.0.1": {
+          "sha256": "f1744181ee06c77942d7ef75088fac6edbde7635005a9f98d0749d36807e5e36",
           "plugin_api_version": "1.0",
           "min_app_version": "1.0.0",
           "max_app_version": "999.999.999",
