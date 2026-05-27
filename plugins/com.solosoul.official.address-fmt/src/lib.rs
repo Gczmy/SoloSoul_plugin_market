@@ -3,7 +3,7 @@
 //! 纯本地插件，零网络依赖。
 //! 将 Vault 中的所有地址按目标国家/地区规范格式化输出。
 
-use solosoul_plugin_sdk::{get_field, log_error, log_info};
+use solosoul_plugin_sdk::{get_field, log_error, log_info, result_key_value, send_result_json};
 
 /// 地址组件
 struct Address {
@@ -220,6 +220,7 @@ pub extern "C" fn run() -> i32 {
 
     log_info(&format!("发现 {} 条地址", count));
     let mut success_count = 0;
+    let mut result_pairs: Vec<String> = Vec::new();
 
     for i in 0..count {
         log_info(&format!("--- 处理地址[{}] ---", i));
@@ -260,6 +261,35 @@ pub extern "C" fn run() -> i32 {
             log_info(&format!("地址[{}] 格式化结果: {} | {}", i, display_label, formatted));
         }
         success_count += 1;
+
+        // Phase 2: 收集结构化结果数据
+        let label = if display_label.is_empty() {
+            format!("地址 {}", i + 1)
+        } else {
+            display_label
+        };
+        result_pairs.push(format!("{} | {}", label, formatted));
+    }
+
+    // Phase 2: 发送结构化结果（key_value 卡片）
+    if !result_pairs.is_empty() {
+        let pairs_json: Vec<String> = result_pairs
+            .iter()
+            .enumerate()
+            .map(|(i, v)| format!(r#"{{"key":"地址 {}","value":"{}"}}"#, i + 1, escape_json(v)))
+            .collect();
+        let json = format!(
+            r#"{{"type":"key_value","title":"地址格式化结果","pairs":[{}]}}"#,
+            pairs_json.join(",")
+        );
+        let ret = send_result_json(&json);
+        if let Err(code) = ret {
+            log_error(&format!("solosoul_result 发送失败，错误码: {}", code));
+            // 降级：用日志输出
+            for v in &result_pairs {
+                log_info(v);
+            }
+        }
     }
 
     log_info(&format!("Address Formatter 完成 — 成功格式化 {} / {} 条地址", success_count, count));
@@ -269,6 +299,11 @@ pub extern "C" fn run() -> i32 {
     } else {
         0
     }
+}
+
+/// 简单的 JSON 字符串转义
+fn escape_json(s: &str) -> String {
+    s.replace('\\', "\\\\").replace('"', "\\\"").replace('\n', "\\n").replace('\r', "\\r")
 }
 
 // ============================================================================

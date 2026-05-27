@@ -73,6 +73,22 @@ extern "C" {
 
     /// 获取 Unix 时间戳（毫秒）
     fn solosoul_get_timestamp() -> i64;
+
+    /// 发送结构化最终结果（Phase 2）
+    ///
+    /// # 参数
+    /// - `data_ptr`: JSON 数据 UTF-8 字节指针
+    /// - `data_len`: JSON 数据长度
+    ///
+    /// # 返回值
+    /// - `0`: 成功
+    /// - `-1`: 大小超限（> 64KB）
+    /// - `-2`: 编码非法（非 UTF-8）
+    /// - `-3`: 嵌套深度超限（> 10）
+    /// - `-4`: 非法 type
+    /// - `-5`: 缺少 type 字段
+    /// - `-6`: 非法 JSON
+    fn solosoul_result(data_ptr: *const u8, data_len: usize) -> i32;
 }
 
 // ============================================================================
@@ -252,6 +268,93 @@ pub fn log_debug(message: &str) {
 /// ```
 pub fn get_timestamp() -> i64 {
     unsafe { solosoul_get_timestamp() }
+}
+
+// ============================================================================
+// Phase 2: 结构化结果通道
+// ============================================================================
+
+/// 发送结构化结果（原始接口）
+///
+/// # 返回值
+/// - `Ok(())`: 成功
+/// - `Err(code)`: 错误码（见 solosoul_result 文档）
+pub fn send_result_json(json: &str) -> Result<(), i32> {
+    let code = unsafe { solosoul_result(json.as_ptr(), json.len()) };
+    if code == 0 {
+        Ok(())
+    } else {
+        Err(code)
+    }
+}
+
+/// 发送文本结果
+///
+/// # 示例
+/// ```ignore
+/// result_text("格式化完成");
+/// ```
+pub fn result_text(content: &str) {
+    let json = format!(r#"{{"type":"text","content":"{}"}}"#, escape_json(content));
+    let _ = send_result_json(&json);
+}
+
+/// 发送键值对结果
+///
+/// # 示例
+/// ```ignore
+/// result_key_value("地址", &[("街道", "长安街1号"), ("城市", "北京")]);
+/// ```
+pub fn result_key_value(title: &str, pairs: &[(&str, &str)]) {
+    let pairs_json: Vec<String> = pairs
+        .iter()
+        .map(|(k, v)| format!(r#"{{"key":"{}","value":"{}"}}"#, escape_json(k), escape_json(v)))
+        .collect();
+    let json = format!(
+        r#"{{"type":"key_value","title":"{}","pairs":[{}]}}"#,
+        escape_json(title),
+        pairs_json.join(",")
+    );
+    let _ = send_result_json(&json);
+}
+
+/// 发送表格结果
+///
+/// # 示例
+/// ```ignore
+/// result_table(&["字段", "值"], &[vec!["街道", "长安街1号"], vec!["城市", "北京"]]);
+/// ```
+pub fn result_table(headers: &[&str], rows: &[Vec<&str>]) {
+    let headers_json: Vec<String> = headers.iter().map(|h| format!("\"{}\"", escape_json(h))).collect();
+    let rows_json: Vec<String> = rows
+        .iter()
+        .map(|row| {
+            let cells: Vec<String> = row.iter().map(|c| format!("\"{}\"", escape_json(c))).collect();
+            format!("[{}]", cells.join(","))
+        })
+        .collect();
+    let json = format!(
+        r#"{{"type":"table","headers":[{}],"rows":[{}]}}"#,
+        headers_json.join(","),
+        rows_json.join(",")
+    );
+    let _ = send_result_json(&json);
+}
+
+/// 发送 Markdown 结果
+///
+/// # 示例
+/// ```ignore
+/// result_markdown("**地址**：长安街1号");
+/// ```
+pub fn result_markdown(content: &str) {
+    let json = format!(r#"{{"type":"markdown","content":"{}"}}"#, escape_json(content));
+    let _ = send_result_json(&json);
+}
+
+/// 简单的 JSON 字符串转义（处理双引号和反斜杠）
+fn escape_json(s: &str) -> String {
+    s.replace('\\', "\\\\").replace('"', "\\\"").replace('\n', "\\n").replace('\r', "\\r")
 }
 
 // ============================================================================
