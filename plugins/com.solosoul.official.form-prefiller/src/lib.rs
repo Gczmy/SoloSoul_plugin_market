@@ -4,7 +4,7 @@
 //! 根据常见表单场景生成 Vault 字段映射表，显示哪些字段已就绪/缺失。
 
 #[cfg(not(test))]
-use solosoul_plugin_sdk::{get_field, log_error, log_info};
+use solosoul_plugin_sdk::{get_field, log_error, log_info, send_result_json};
 
 /// 表单字段映射
 struct FieldMapping {
@@ -157,6 +157,14 @@ fn truncate(s: &str, max_len: usize) -> String {
     }
 }
 
+/// 简单的 JSON 字符串转义
+fn escape_json(s: &str) -> String {
+    s.replace("\\", "\\\\")
+        .replace("\"", "\\\"")
+        .replace("\n", "\\n")
+        .replace("\r", "\\r")
+}
+
 #[cfg(not(test))]
 #[no_mangle]
 pub extern "C" fn run() -> i32 {
@@ -201,6 +209,13 @@ pub extern "C" fn run() -> i32 {
     for line in report.lines() {
         log_info(line);
     }
+
+    // Phase 2: 结构化结果
+    let pairs_json: Vec<String> = results.iter().map(|(field, _vault_path, present)| {
+        format!(r#"{{"key":"{}","value":"{}"}}"#, escape_json(field), escape_json(if *present { "✅ 已就绪" } else { "❌ 缺失" }))
+    }).collect();
+    let result_json = format!(r#"{{"type":"key_value","title":"{} 表单预填","pairs":[{}],"text":"{}"}}"#, escape_json(scenario.name), pairs_json.join(","), escape_json(&report));
+    let _ = send_result_json(&result_json);
 
     0
 }

@@ -4,7 +4,7 @@
 //! 按时间顺序展示教育、工作、证件等人生里程碑。
 
 #[cfg(not(test))]
-use solosoul_plugin_sdk::{get_field, log_info};
+use solosoul_plugin_sdk::{get_field, log_info, send_result_json};
 
 /// 时间线事件
 #[derive(Debug, Clone)]
@@ -93,6 +93,14 @@ fn truncate(s: &str, max_len: usize) -> String {
     }
 }
 
+/// 简单的 JSON 字符串转义
+fn escape_json(s: &str) -> String {
+    s.replace("\\", "\\\\")
+        .replace("\"", "\\\"")
+        .replace("\n", "\\n")
+        .replace("\r", "\\r")
+}
+
 #[cfg(not(test))]
 #[no_mangle]
 pub extern "C" fn run() -> i32 {
@@ -171,6 +179,13 @@ pub extern "C" fn run() -> i32 {
     for line in report.lines() {
         log_info(line);
     }
+
+    // Phase 2: 结构化结果
+    let pairs_json: Vec<String> = events.iter().map(|e| {
+        format!(r#"{{"key":"{} {}","value":"{}"}}"#, escape_json(&e.year.to_string()), escape_json(&e.title), escape_json(&e.detail))
+    }).collect();
+    let result_json = format!(r#"{{"type":"key_value","title":"身份时间线","pairs":[{}],"text":"{}"}}"#, pairs_json.join(","), escape_json(&report));
+    let _ = send_result_json(&result_json);
 
     0
 }

@@ -4,7 +4,7 @@
 //! 根据目标场景检查 Vault 中已有/缺失的材料。
 
 #[cfg(not(test))]
-use solosoul_plugin_sdk::{get_field, log_error, log_info};
+use solosoul_plugin_sdk::{get_field, log_error, log_info, send_result_json};
 
 /// 材料项
 struct DocItem {
@@ -181,6 +181,14 @@ fn truncate(s: &str, max_len: usize) -> String {
     }
 }
 
+/// 简单的 JSON 字符串转义
+fn escape_json(s: &str) -> String {
+    s.replace("\\", "\\\\")
+        .replace("\"", "\\\"")
+        .replace("\n", "\\n")
+        .replace("\r", "\\r")
+}
+
 /// 插件入口
 #[cfg(not(test))]
 #[no_mangle]
@@ -222,6 +230,13 @@ pub extern "C" fn run() -> i32 {
     for line in report.lines() {
         log_info(line);
     }
+
+    // Phase 2: 结构化结果
+    let pairs_json: Vec<String> = results.iter().map(|(name, present)| {
+        format!(r#"{{"key":"{}","value":"{}"}}"#, escape_json(name), escape_json(if *present { "✅ 已准备" } else { "❌ 缺失" }))
+    }).collect();
+    let result_json = format!(r#"{{"type":"key_value","title":"{} 材料清单","pairs":[{}],"text":"{}"}}"#, escape_json(scenario.name), pairs_json.join(","), escape_json(&report));
+    let _ = send_result_json(&result_json);
 
     0
 }

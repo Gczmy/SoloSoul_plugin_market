@@ -3,7 +3,7 @@
 //! 纯本地插件，零网络依赖。
 //! 将 Vault 中的护照信息编码为 ICAO Doc 9303 TD3 标准机读区格式。
 
-use solosoul_plugin_sdk::{get_field, log_error, log_info};
+use solosoul_plugin_sdk::{get_field, log_error, log_info, send_result_json};
 
 /// MRZ 编码结果
 struct MrzResult {
@@ -182,6 +182,14 @@ fn mask_mrz(result: &MrzResult) -> String {
     )
 }
 
+/// 简单的 JSON 字符串转义
+fn escape_json(s: &str) -> String {
+    s.replace("\\", "\\\\")
+        .replace("\"", "\\\"")
+        .replace("\n", "\\n")
+        .replace("\r", "\\r")
+}
+
 /// 插件入口
 #[no_mangle]
 pub extern "C" fn run() -> i32 {
@@ -248,6 +256,16 @@ pub extern "C" fn run() -> i32 {
             log_info(&result.line1);
             log_info(&result.line2);
             log_info(&format!("脱敏预览:\n{}", mask_mrz(&result)));
+
+            // Phase 2: 结构化结果
+            let pairs_json = vec![
+                format!(r#"{{"key":"MRZ 行 1","value":"{}"}}"#, escape_json(&result.line1)),
+                format!(r#"{{"key":"MRZ 行 2","value":"{}"}}"#, escape_json(&result.line2)),
+                format!(r#"{{"key":"脱敏预览","value":"{}"}}"#, escape_json(&mask_mrz(&result))),
+            ];
+            let result_json = format!(r#"{{"type":"key_value","title":"MRZ 编码","pairs":[{}]}}"#, pairs_json.join(","));
+            let _ = send_result_json(&result_json);
+
             0
         }
         Err(e) => {

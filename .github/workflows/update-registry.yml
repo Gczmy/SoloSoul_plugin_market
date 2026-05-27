@@ -1,12 +1,13 @@
 name: Update Plugin Registry
 
 on:
-  push:
-    branches: [main]
-    paths:
-      - 'plugins/**'
-      - 'scripts/generate_registry.py'
-      - '.github/workflows/update-registry.yml'
+  # 临时禁用自动更新，避免手动修改 registry.json 被覆盖
+  # push:
+  #   branches: [main]
+  #   paths:
+  #     - 'plugins/**'
+  #     - 'scripts/generate_registry.py'
+  #     - '.github/workflows/update-registry.yml'
   workflow_dispatch:
 
 permissions:

@@ -3,7 +3,7 @@
 //! 纯本地插件，零网络依赖。
 //! 读取 Vault 中的证件号码，校验其格式与校验位合法性。
 
-use solosoul_plugin_sdk::{get_field, log_error, log_info};
+use solosoul_plugin_sdk::{get_field, log_error, log_info, send_result_json};
 
 /// 中国居民身份证 18 位校验
 ///
@@ -49,6 +49,14 @@ fn validate_cn_id(id: &str) -> Result<bool, &'static str> {
 /// - `0`: 校验通过或正常执行完毕
 /// - `1`: 字段读取失败
 /// - `2`: 校验不通过
+/// 简单的 JSON 字符串转义
+fn escape_json(s: &str) -> String {
+    s.replace("\\", "\\\\")
+        .replace("\"", "\\\"")
+        .replace("\n", "\\n")
+        .replace("\r", "\\r")
+}
+
 #[no_mangle]
 pub extern "C" fn run() -> i32 {
     log_info("ID Validator 启动");
@@ -70,9 +78,13 @@ pub extern "C" fn run() -> i32 {
     };
 
     // 2. 校验身份证
+    let mut id_valid = false;
     if !id_card.is_empty() {
         match validate_cn_id(&id_card) {
-            Ok(true) => log_info("✅ 身份证校验通过"),
+            Ok(true) => {
+                log_info("✅ 身份证校验通过");
+                id_valid = true;
+            }
             Ok(false) => {
                 log_error("❌ 身份证校验失败：校验位不匹配");
                 return 2;
@@ -85,10 +97,11 @@ pub extern "C" fn run() -> i32 {
     }
 
     // 3. 读取护照字段（可选）
+    let mut passport = String::new();
     match get_field("passport.number") {
         Ok(v) if !v.is_empty() => {
             log_info(&format!("读取到 passport.number: {}", mask_id(&v)));
-            // 护照格式校验较为宽松，目前只做非空检查
+            passport = v;
             log_info("✅ 护照号码已记录（格式校验待扩展）");
         }
         Ok(_) => {
@@ -100,6 +113,21 @@ pub extern "C" fn run() -> i32 {
     }
 
     log_info("ID Validator 执行完毕");
+
+    // Phase 2: 结构化结果
+    let mut pairs: Vec<(&str, String)> = Vec::new();
+    if !id_card.is_empty() {
+        pairs.push(("证件类型", "身份证".to_string()));
+        pairs.push(("脱敏号码", mask_id(&id_card)));
+        pairs.push(("校验结果", if id_valid { "✅ 通过".to_string() } else { "❌ 失败".to_string() }));
+    }
+    if !passport.is_empty() {
+        pairs.push(("护照号码", mask_id(&passport)));
+    }
+    let pairs_json: Vec<String> = pairs.iter().map(|(k, v)| format!(r#"{{"key":"{}","value":"{}"}}"#, escape_json(k), escape_json(v))).collect();
+    let result_json = format!(r#"{{"type":"key_value","title":"证件校验","pairs":[{}]}}"#, pairs_json.join(","));
+    let _ = send_result_json(&result_json);
+
     0
 }
 

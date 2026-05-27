@@ -3,7 +3,7 @@
 //! 纯本地插件，零网络依赖。
 //! 生成紧急情况下使用的医疗/联系信息卡片。
 
-use solosoul_plugin_sdk::{get_field, log_error, log_info};
+use solosoul_plugin_sdk::{get_field, log_error, log_info, send_result_json};
 
 /// 安全读取字段
 fn read_field(path: &str) -> String {
@@ -109,6 +109,14 @@ fn truncate(s: &str, max_len: usize) -> String {
     }
 }
 
+/// 简单的 JSON 字符串转义
+fn escape_json(s: &str) -> String {
+    s.replace("\\", "\\\\")
+        .replace("\"", "\\\"")
+        .replace("\n", "\\n")
+        .replace("\r", "\\r")
+}
+
 /// 插件入口
 #[no_mangle]
 pub extern "C" fn run() -> i32 {
@@ -125,6 +133,17 @@ pub extern "C" fn run() -> i32 {
     for line in card.lines() {
         log_info(line);
     }
+
+    // Phase 2: 结构化结果
+    let mut pairs: Vec<(&str, String)> = Vec::new();
+    if !data.name.is_empty() { pairs.push(("姓名", data.name.clone())); }
+    if !data.blood.is_empty() { pairs.push(("血型", data.blood.clone())); }
+    if !data.allergies.is_empty() { pairs.push(("过敏", data.allergies.clone())); }
+    if !data.medications.is_empty() { pairs.push(("用药", data.medications.clone())); }
+    if !data.emer_name.is_empty() { pairs.push(("紧急联系人", format!("{} ({}) {}", data.emer_name, data.emer_rel, data.emer_phone))); }
+    let pairs_json: Vec<String> = pairs.iter().map(|(k, v)| format!(r#"{{"key":"{}","value":"{}"}}"#, escape_json(k), escape_json(v))).collect();
+    let result_json = format!(r#"{{"type":"key_value","title":"紧急联系卡","pairs":[{}],"text":"{}"}}"#, pairs_json.join(","), escape_json(&card));
+    let _ = send_result_json(&result_json);
 
     0
 }

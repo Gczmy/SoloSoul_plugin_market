@@ -3,7 +3,7 @@
 //! 纯本地插件，零网络依赖。
 //! 扫描 Vault 中所有证件的有效期，计算剩余天数并按紧急程度分级预警。
 
-use solosoul_plugin_sdk::{get_field, get_timestamp, log_error, log_info};
+use solosoul_plugin_sdk::{get_field, get_timestamp, log_error, log_info, send_result_json};
 
 /// 证件条目
 struct Document {
@@ -143,6 +143,14 @@ fn check_document(doc: &Document, current_year: i32, current_month: u32, current
     }
 }
 
+/// 简单的 JSON 字符串转义
+fn escape_json(s: &str) -> String {
+    s.replace("\\", "\\\\")
+        .replace("\"", "\\\"")
+        .replace("\n", "\\n")
+        .replace("\r", "\\r")
+}
+
 /// 插件入口函数
 #[no_mangle]
 pub extern "C" fn run() -> i32 {
@@ -181,6 +189,7 @@ pub extern "C" fn run() -> i32 {
     ];
 
     let mut checked_count = 0;
+    let mut result_pairs: Vec<(String, String)> = Vec::new();
 
     for doc in &docs_to_check {
         match get_field(doc.field_path) {
@@ -188,10 +197,11 @@ pub extern "C" fn run() -> i32 {
                 let doc_with_value = Document {
                     name: doc.name,
                     field_path: doc.field_path,
-                    value,
+                    value: value.clone(),
                 };
                 check_document(&doc_with_value, current_year, current_month, current_day);
                 checked_count += 1;
+                result_pairs.push((doc.name.to_string(), value));
             }
             Err(e) => {
                 // 可选字段读取失败不阻断
@@ -204,6 +214,13 @@ pub extern "C" fn run() -> i32 {
         "Expiry Guardian 扫描完毕 — 检查了 {} 个证件",
         checked_count
     ));
+
+    // Phase 2: 结构化结果
+    let pairs_json: Vec<String> = result_pairs.iter().map(|(k, v)| {
+        format!(r#"{{"key":"{}","value":"{}"}}"#, escape_json(k), escape_json(v))
+    }).collect();
+    let result_json = format!(r#"{{"type":"key_value","title":"证件有效期","pairs":[{}]}}"#, pairs_json.join(","));
+    let _ = send_result_json(&result_json);
 
     0
 }
