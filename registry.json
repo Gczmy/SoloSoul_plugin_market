@@ -1,12 +1,21 @@
 {
   "version": "1",
-  "updated_at": "2026-05-26T22:25:30Z",
+  "updated_at": "2026-05-27T13:14:10Z",
   "plugins": {
     "com.solosoul.official.address-fmt": {
       "name": "Address Formatter",
       "publisher": "SoloSoul Official",
-      "latest_version": "1.0.1",
+      "latest_version": "1.0.2",
       "versions": {
+        "1.0.2": {
+          "sha256": "71e016413c4033dbde9b007579826065d3092669ad3c0b6f1a2d06752ea333fa",
+          "plugin_api_version": "1.0",
+          "min_app_version": "1.0.0",
+          "max_app_version": "999.999.999",
+          "download_url": "https://cdn.jsdelivr.net/gh/Gczmy/SoloSoul_plugin_market@main/plugins/com.solosoul.official.address-fmt/plugin.wasm",
+          "raw_url": "https://raw.githubusercontent.com/Gczmy/SoloSoul_plugin_market/main/plugins/com.solosoul.official.address-fmt/plugin.wasm",
+          "released_at": "2026-05-27T13:14:10Z"
+        },
         "1.0.1": {
           "sha256": "cb629cecb3b980223ea2ea7ae2daf04df1336f9c0e9cb98bffa59c331b64fb58",
           "plugin_api_version": "1.0",
