@@ -1,25 +1,29 @@
 {
   "plugin_id": "com.solosoul.official.doc-checklist",
   "name": "Doc Checklist",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "plugin_api_version": "1.0",
   "min_app_version": "1.0.0",
   "max_app_version": "999.999.999",
   "description": "材料清单检查器 — 根据签证/旅行/银行场景检查 Vault 中已有/缺失的材料",
   "publisher": "SoloSoul Official",
   "homepage": "https://github.com/Gczmy/SoloSoul_plugin_market/tree/main/plugins/com.solosoul.official.doc-checklist",
-  "required_fields": [
-    "docChecklist.scenario"
-  ],
+  "required_fields": [],
   "optional_fields": [
     "passport.number",
     "passport.photo",
+    "identity.idPhoto",
     "employment.company",
     "financial.bankStatement",
     "travel.itinerary",
     "travel.hotelBooking",
     "insurance.travel",
-    "identity.idPhoto"
+    "visa.ds160Confirmation",
+    "visa.interviewAppointment",
+    "medical.tbTest",
+    "visa.casLetter",
+    "address.street",
+    "card.number"
   ],
   "network_policy": {
     "block_all_outbound": true

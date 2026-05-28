@@ -1,6 +1,6 @@
 {
   "version": "1",
-  "updated_at": "2026-05-28T10:16:18Z",
+  "updated_at": "2026-05-28T09:28:00Z",
   "plugins": {
     "com.solosoul.official.address-fmt": {
       "name": "Address Formatter",
@@ -200,10 +200,20 @@
     "com.solosoul.official.doc-checklist": {
       "name": "Doc Checklist",
       "publisher": "SoloSoul Official",
-      "latest_version": "1.0.1",
+      "latest_version": "1.0.2",
       "versions": {
+        "1.0.2": {
+          "sha256": "9a6bc800c9d81db5017471ca47dbf7b3b6f86946b47e596b8325ef2fbc9ceb0b",
+          "plugin_api_version": "1.0",
+          "min_app_version": "1.0.0",
+          "max_app_version": "999.999.999",
+          "download_url": "https://cdn.jsdelivr.net/gh/Gczmy/SoloSoul_plugin_market@main/plugins/com.solosoul.official.doc-checklist/plugin.wasm",
+          "raw_url": "https://raw.githubusercontent.com/Gczmy/SoloSoul_plugin_market/main/plugins/com.solosoul.official.doc-checklist/plugin.wasm",
+          "released_at": "2026-05-28T09:28:00Z",
+          "changelog": "新增场景选择对话框：日本签证、美国签证、申根签证、英国签证、银行开户、酒店入住"
+        },
         "1.0.1": {
-          "sha256": "85b52777e07005dbd5d7f0e4a9e498ff00a77a4179f4c65f074156d7aa85893f",
+          "sha256": "bc5b124ccad17dc760b1a659d7d3b0780720433748c4dd840e025aeb63228cd4",
           "plugin_api_version": "1.0",
           "min_app_version": "1.0.0",
           "max_app_version": "999.999.999",
@@ -213,7 +223,7 @@
           "changelog": "优化注册表元数据与插件描述信息"
         },
         "1.0.0": {
-          "sha256": "85b52777e07005dbd5d7f0e4a9e498ff00a77a4179f4c65f074156d7aa85893f",
+          "sha256": "bc5b124ccad17dc760b1a659d7d3b0780720433748c4dd840e025aeb63228cd4",
           "plugin_api_version": "1.0",
           "min_app_version": "1.0.0",
           "max_app_version": "999.999.999",

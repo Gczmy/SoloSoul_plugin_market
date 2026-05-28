@@ -101,6 +101,28 @@ extern "C" {
     /// - `-5`: 缺少 type 字段
     /// - `-6`: 非法 JSON
     fn solosoul_result(data_ptr: *const u8, data_len: usize) -> i32;
+
+    /// 显示通用对话框（Phase 4）
+    ///
+    /// # 参数
+    /// - `config_ptr`: 对话框配置 JSON UTF-8 字节指针
+    /// - `config_len`: 配置 JSON 长度
+    /// - `out_ptr`: 输出缓冲区指针
+    /// - `out_cap`: 输出缓冲区容量
+    ///
+    /// # 返回值
+    /// - `0`: 成功
+    /// - `-1`: 通道关闭
+    /// - `-2`: 用户取消
+    /// - `-3`: 超时
+    /// - `-4`: 缓冲区不足
+    /// - `-5`: 无权限
+    fn solosoul_show_dialog(
+        config_ptr: *const u8,
+        config_len: usize,
+        out_ptr: *mut u8,
+        out_cap: usize,
+    ) -> i32;
 }
 
 // ============================================================================
@@ -114,7 +136,7 @@ pub enum PluginError {
     PermissionDenied = -1,
     /// 用户拒绝
     UserDenied = -2,
-    /// TTL 过期
+    /// TTL 过期或超时
     TtlExpired = -3,
     /// 缓冲区不足
     BufferTooSmall = -4,
@@ -128,6 +150,8 @@ pub enum PluginError {
     RateLimited = -8,
     /// 域名未授权
     DomainNotAllowed = -10,
+    /// 对话框失败
+    DialogFailed = -11,
     /// 未知错误
     Unknown = -99,
 }
@@ -280,6 +304,63 @@ pub fn log_debug(message: &str) {
 /// ```
 pub fn get_timestamp() -> i64 {
     unsafe { solosoul_get_timestamp() }
+}
+
+/// 显示通用对话框
+///
+/// # 参数
+/// - `config_json`: 对话框配置 JSON 字符串
+///
+/// # 返回值
+/// - `Ok(String)`: 用户选择的 JSON 结果（如 `{"selected":"japan-visa"}`）
+/// - `Err(PluginError::UserDenied)`: 用户取消
+/// - `Err(PluginError::TtlExpired)`: 超时
+/// - `Err(PluginError::DialogFailed)`: 其他错误
+///
+/// # 示例
+/// ```ignore
+/// let config = r#"{"title":"选择","type":"radio_list","items":[{"id":"a","label":"A"}]}"#;
+/// let result = show_dialog(config).expect("对话框失败");
+/// ```
+pub fn show_dialog(config_json: &str) -> Result<String, PluginError> {
+    const INITIAL_CAP: usize = 4096;
+    let mut buf: [MaybeUninit<u8>; INITIAL_CAP] = [MaybeUninit::uninit(); INITIAL_CAP];
+
+    let code = unsafe {
+        solosoul_show_dialog(
+            config_json.as_ptr(),
+            config_json.len(),
+            buf.as_mut_ptr() as *mut u8,
+            INITIAL_CAP,
+        )
+    };
+
+    match code {
+        0 => {}
+        -2 => return Err(PluginError::UserDenied),
+        -3 => return Err(PluginError::TtlExpired),
+        -5 => return Err(PluginError::PermissionDenied),
+        _ => return Err(PluginError::DialogFailed),
+    }
+
+    // 查找 null terminator
+    let len = unsafe {
+        let mut end = INITIAL_CAP;
+        for (i, b) in buf.iter().enumerate() {
+            if unsafe { b.assume_init() } == 0 {
+                end = i;
+                break;
+            }
+        }
+        end
+    };
+
+    let bytes: Vec<u8> = buf[..len]
+        .iter()
+        .map(|b| unsafe { b.assume_init() })
+        .collect();
+
+    String::from_utf8(bytes).map_err(|_| PluginError::Unknown)
 }
 
 // ============================================================================

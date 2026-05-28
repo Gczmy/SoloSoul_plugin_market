@@ -4,7 +4,7 @@
 //! 根据目标场景检查 Vault 中已有/缺失的材料。
 
 #[cfg(not(test))]
-use solosoul_plugin_sdk::{get_field, log_error, log_info, send_result_json};
+use solosoul_plugin_sdk::{get_field, log_error, log_info, send_result_json, show_dialog, PluginError};
 
 /// 材料项
 struct DocItem {
@@ -200,22 +200,57 @@ fn escape_json(s: &str) -> String {
     result
 }
 
+/// 解析对话框返回的 JSON 结果
+fn parse_dialog_result(json_str: &str) -> String {
+    if let Ok(val) = serde_json::from_str::<serde_json::Value>(json_str) {
+        if let Some(selected) = val.get("selected").and_then(|v| v.as_str()) {
+            return selected.to_string();
+        }
+    }
+    String::new()
+}
+
 /// 插件入口
 #[cfg(not(test))]
 #[no_mangle]
 pub extern "C" fn run() -> i32 {
     log_info("Doc Checklist 启动 — 检查材料清单");
 
-    let scenario_query = match get_field("docChecklist.scenario") {
-        Ok(v) => v.trim().to_string(),
+    // 1. 通过通用对话框请求用户选择场景
+    let dialog_config = r#"{
+        "title": {"zh": "选择签证/业务类型", "en": "Select Visa/Business Type"},
+        "description": {"zh": "选择场景后，插件将请求访问相关字段，请继续授权。", "en": "After selecting a scenario, the plugin will request access to relevant fields."},
+        "type": "radio_list",
+        "items": [
+            {"id": "japan-visa", "label": {"zh": "日本签证", "en": "Japan Visa"}},
+            {"id": "us-visa", "label": {"zh": "美国签证 (B1/B2)", "en": "US Visa (B1/B2)"}},
+            {"id": "schengen-visa", "label": {"zh": "申根签证", "en": "Schengen Visa"}},
+            {"id": "uk-visa", "label": {"zh": "英国签证", "en": "UK Visa"}},
+            {"id": "bank-account", "label": {"zh": "银行开户", "en": "Bank Account"}},
+            {"id": "hotel-checkin", "label": {"zh": "酒店入住", "en": "Hotel Check-in"}}
+        ]
+    }"#;
+
+    let result_json = match show_dialog(dialog_config) {
+        Ok(json) => json,
+        Err(PluginError::UserDenied) => {
+            log_info("用户取消场景选择");
+            return 0;
+        }
+        Err(PluginError::TtlExpired) => {
+            log_error("场景选择超时，请重试");
+            return -3;
+        }
         Err(e) => {
-            log_error(&format!("获取场景设置失败: {:?}", e));
+            log_error(&format!("对话框错误: {:?}", e));
             return -1;
         }
     };
 
+    // 2. 解析用户选择
+    let scenario_query = parse_dialog_result(&result_json);
     if scenario_query.is_empty() {
-        log_error("未设置目标场景 (docChecklist.scenario)");
+        log_error("未选择场景");
         return -2;
     }
 
