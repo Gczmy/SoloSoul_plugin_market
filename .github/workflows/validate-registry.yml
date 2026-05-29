@@ -1,0 +1,69 @@
+name: Validate Plugin Registry
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'plugins/**'
+      - 'scripts/generate_registry.py'
+      - '.github/workflows/**'
+  pull_request:
+    branches: [main]
+    paths:
+      - 'plugins/**'
+      - 'scripts/generate_registry.py'
+      - '.github/workflows/**'
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Generate registry.json (validation)
+        run: python3 scripts/generate_registry.py
+        env:
+          GITHUB_OWNER: ${{ github.repository_owner }}
+          GITHUB_REPO: ${{ github.event.repository.name }}
+          GITHUB_BRANCH: ${{ github.ref_name }}
+
+      - name: Validate registry.json is up to date
+        run: |
+          if git diff --quiet registry.json; then
+            echo "✅ registry.json is up to date with plugins/ directory."
+            exit 0
+          else
+            echo "❌ registry.json is out of date!"
+            echo ""
+            echo "The following differences were detected:"
+            echo "---"
+            git diff --stat registry.json
+            echo "---"
+            echo ""
+            echo "Please run the following commands locally to fix:"
+            echo "  python3 scripts/generate_registry.py"
+            echo "  git add registry.json"
+            echo "  git commit --amend --no-edit"
+            echo "  git push --force-with-lease"
+            echo ""
+            echo "Or, if you prefer a new commit:"
+            echo "  python3 scripts/generate_registry.py"
+            echo "  git add registry.json"
+            echo "  git commit -m 'chore: update registry.json'"
+            echo "  git push"
+            echo ""
+            echo "To skip validation in CI (not recommended), use:"
+            echo "  git commit --no-verify"
+            exit 1
+          fi

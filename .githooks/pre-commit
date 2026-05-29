@@ -1,0 +1,45 @@
+#!/bin/sh
+# SoloSoul Plugin Market — Pre-commit Hook
+# 自动检测 plugins/ 变更并重新生成 registry.json
+#
+# 安装方式：
+#   bash scripts/install-hooks.sh
+# 或手动：
+#   git config core.hooksPath .githooks
+
+set -e
+
+# 检查 python3 是否可用
+if ! command -v python3 >/dev/null 2>&1; then
+    echo "⚠️  [pre-commit] python3 未安装，跳过 registry.json 自动生成。"
+    echo "    如需自动生成，请安装 Python 3。"
+    echo "    如需跳过此 hook，请使用：git commit --no-verify"
+    exit 0
+fi
+
+# 检查是否有 plugins/ 目录或生成脚本的相关变更
+STAGED_PLUGINS=$(git diff --cached --name-only --diff-filter=ACM | grep -E '^plugins/' || true)
+STAGED_SCRIPT=$(git diff --cached --name-only --diff-filter=ACM | grep -E '^scripts/generate_registry\.py$' || true)
+
+if [ -z "$STAGED_PLUGINS" ] && [ -z "$STAGED_SCRIPT" ]; then
+    # 没有插件相关变更，跳过
+    exit 0
+fi
+
+echo "🔍  [pre-commit] 检测到插件相关变更，正在重新生成 registry.json..."
+
+# 运行生成脚本
+if ! python3 scripts/generate_registry.py; then
+    echo "❌  [pre-commit] registry.json 生成失败！"
+    echo "    请检查 scripts/generate_registry.py 的输出。"
+    echo "    如需跳过此 hook，请使用：git commit --no-verify"
+    exit 1
+fi
+
+# 如果 registry.json 被修改，自动加入本次提交
+if ! git diff --quiet registry.json; then
+    git add registry.json
+    echo "✅  [pre-commit] registry.json 已更新并自动加入提交。"
+else
+    echo "✅  [pre-commit] registry.json 无需更新。"
+fi

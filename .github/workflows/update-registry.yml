@@ -1,13 +1,9 @@
 name: Update Plugin Registry
 
 on:
-  # 临时禁用自动更新，避免手动修改 registry.json 被覆盖
-  # push:
-  #   branches: [main]
-  #   paths:
-  #     - 'plugins/**'
-  #     - 'scripts/generate_registry.py'
-  #     - '.github/workflows/update-registry.yml'
+  # 此 workflow 仅在手动触发时运行，用于紧急重建 registry.json。
+  # 日常开发中，registry.json 应由开发者在本地生成并随代码提交。
+  # push 时的验证由 validate-registry.yml 负责。
   workflow_dispatch:
 
 permissions:

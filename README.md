@@ -11,7 +11,7 @@
 
 SoloSoul Plugin Market 是独灵生态的官方插件仓库，遵循以下核心原则：
 
-- **仓库即市场**：GitHub 公开仓库直接充当插件市场，push 即发布
+- **仓库即市场**：GitHub 公开仓库直接充当插件市场，本地生成索引后 push 即发布
 - **零服务器成本**：通过 jsDelivr CDN 免费分发，GitHub Raw 作为 fallback
 - **安全优先**：所有插件经 SHA-256 白名单校验 + 版本签名验证后方可加载
 - **字段级权限**：插件通过声明式清单请求数据，用户逐字段授权
@@ -37,9 +37,10 @@ SoloSoul Plugin Market 是独灵生态的官方插件仓库，遵循以下核心
 ## 2. 快速开始（插件开发者）
 
 ```bash
-# 1. 克隆本仓库
- git clone git@github.com:Gczmy/SoloSoul_plugin_market.git
+# 1. 克隆本仓库并安装 Git Hooks
+git clone git@github.com:Gczmy/SoloSoul_plugin_market.git
 cd SoloSoul_plugin_market
+bash scripts/install-hooks.sh      # 启用 pre-commit 自动生成 registry
 
 # 2. 安装 wasm32-wasip1 目标（如未安装）
 rustup target add wasm32-wasip1
@@ -58,16 +59,17 @@ cargo init --lib
 cargo build --target wasm32-wasip1 --release
 
 # 6. 产物位于 target/wasm32-wasip1/release/*.wasm
-#    复制为 plugin.wasm 并连同 manifest.json 提交
- cp target/wasm32-wasip1/release/*.wasm plugin.wasm
+#    复制为 plugin.wasm
+cp target/wasm32-wasip1/release/*.wasm plugin.wasm
 
-# 7. git commit & push → 自动触发 CI 更新 registry.json
+# 7. 提交（pre-commit hook 会自动重新生成 registry.json）
+cd ../..                           # 回到仓库根目录
 git add -A
 git commit -m "feat: add my-plugin v1.0.0"
 git push origin main
 ```
 
-**完成！** push 后 GitHub Actions 会自动重新生成 `registry.json`，约 1 分钟后客户端即可发现新插件。
+**完成！** push 后 CI 会验证 `registry.json` 与 `plugins/` 目录一致，验证通过后客户端即可发现新插件。
 
 ---
 
@@ -76,10 +78,11 @@ git push origin main
 ```
 SoloSoul_plugin_market/
 ├── README.md                          # 本文档
-├── registry.json                      # 插件索引（⚠️ CI 自动生成，勿手动编辑）
+├── registry.json                      # 插件索引（本地生成，随代码提交）
 ├── .github/
 │   └── workflows/
-│       └── update-registry.yml        # CI：push 时自动扫描 plugins/ 生成 registry
+│       ├── validate-registry.yml      # CI：push 时验证 registry.json 与 plugins/ 一致
+│       └── update-registry.yml        # CI：手动触发，紧急重建 registry（兜底）
 ├── scripts/
 │   └── generate_registry.py           # registry.json 生成脚本
 ├── docs/
@@ -102,7 +105,27 @@ SoloSoul_plugin_market/
 
 ---
 
-## 4. 插件清单规范（manifest.json）
+## 4. Git Hooks 安装（推荐）
+
+安装 pre-commit hook 后，提交插件变更时会**自动重新生成 `registry.json`**，无需手动记忆。
+
+```bash
+# 在仓库根目录执行
+bash scripts/install-hooks.sh
+```
+
+此脚本会：
+- 配置 Git 使用 `.githooks/` 目录
+- 检查 `python3` 可用性
+
+安装后，每次 `git commit` 若检测到 `plugins/` 有变更，hook 会自动运行 `generate_registry.py` 并将更新后的 `registry.json` 加入当前提交。
+
+> 如环境缺少 Python 3，hook 会友好跳过并给出提示，不会阻塞提交。
+> 如需临时跳过 hook：`git commit --no-verify`
+
+---
+
+## 5. 插件清单规范（manifest.json）
 
 每个插件必须包含 `manifest.json`，位于插件根目录（与 `plugin.wasm` 同级）：
 
@@ -150,10 +173,11 @@ SoloSoul_plugin_market/
 
 ---
 
-## 5. 插件注册表规范（registry.json）
+## 6. 插件注册表规范（registry.json）
 
-> ⚠️ **此文件由 CI 自动生成，请勿手动编辑。**
-> 如需修改，请编辑 `scripts/generate_registry.py` 或插件的 `manifest.json`。
+> **此文件由开发者本地生成并随代码提交。**
+> 修改插件后，请在仓库根目录运行 `python3 scripts/generate_registry.py` 更新此文件。
+> 推荐安装 Git Hooks（`bash scripts/install-hooks.sh`）以自动完成此步骤。
 
 `registry.json` 是插件市场的机器可读索引，供 SoloSoul 客户端拉取：
 
@@ -202,30 +226,33 @@ SoloSoul 客户端按以下优先级下载：
 
 ## 6. CI/CD 发布流程
 
-本仓库已配置 GitHub Actions，实现 **push 即发布**：
+本仓库采用 **本地预生成 + CI 验证** 模式：
 
 ### 触发条件
 
-- push 到 `main` 分支，且变更涉及 `plugins/`、`scripts/generate_registry.py` 或 workflow 本身
-- 或手动触发 `workflow_dispatch`
+- **`push` / `pull_request` → `validate-registry.yml`**：自动验证 `registry.json` 是否与 `plugins/` 目录一致
+- **`workflow_dispatch` → `update-registry.yml`**：手动触发，紧急重建 `registry.json`（仅维护者）
 
 ### 执行流程
 
 ```
-1. checkout 仓库
-2. 运行 scripts/generate_registry.py
-   ├── 扫描 plugins/ 下所有目录
-   ├── 读取每个插件的 manifest.json
-   ├── 计算 plugin.wasm 的 SHA-256
-   └── 生成 registry.json（含 jsDelivr + raw URL）
-3. 如 registry.json 有变化 → auto-commit & push
+开发者本地：                    GitHub CI (push)：
+1. 修改 plugins/xxx/            1. checkout 仓库
+2. 运行 generate_registry.py    2. 运行 generate_registry.py
+3. git add -A                   3. git diff 对比 registry.json
+4. git commit & push            4. 不一致 → ❌ CI 失败，阻止合并
+                                5. 一致   → ✅ CI 通过
 ```
 
-### 本地预览 registry 生成
+### 本地生成 registry.json
 
 ```bash
+# 在仓库根目录执行
 python3 scripts/generate_registry.py
 # 输出：Generated registry.json with N plugin(s)
+
+# 安装 Git Hooks 后，提交时会自动生成（推荐）
+bash scripts/install-hooks.sh
 ```
 
 环境变量（用于覆盖默认仓库地址）：
@@ -240,7 +267,7 @@ python3 scripts/generate_registry.py
 
 ## 7. 插件版本更新流程
 
-更新现有插件无需创建 Release Tag，只需修改源码后 push：
+更新现有插件无需创建 Release Tag，修改源码后本地生成 registry 并 push：
 
 ```bash
 cd plugins/com.solosoul.official.my-plugin
@@ -251,15 +278,44 @@ cd plugins/com.solosoul.official.my-plugin
 rustup run stable cargo build --target wasm32-wasip1 --release
 cp target/wasm32-wasip1/release/*.wasm plugin.wasm
 
-# 4. 提交
+# 4. 回到仓库根目录，重新生成 registry.json（已安装 hooks 则自动完成）
+cd ../..
+python3 scripts/generate_registry.py
+
+# 5. 提交（若已安装 hooks，registry.json 会自动加入提交）
 git add -A
 git commit -m "feat(id-validator): add visa expiry check v1.1.0"
 git push origin main
 
-# 5. CI 自动生成新的 registry.json，包含新版本条目
+# 6. CI 验证 registry.json 与 plugins/ 一致后通过
 ```
 
 > **注意**：旧版本不会从 registry 中删除，客户端仍可选择安装历史版本（未来功能）。
+
+### CI 失败修复指南
+
+如果 `validate-registry.yml` 报告 `registry.json` 不一致，在本地执行：
+
+```bash
+python3 scripts/generate_registry.py
+git add registry.json
+
+# 方式一：修正当前 commit（推荐，PR 分支）
+git commit --amend --no-edit
+git push --force-with-lease
+
+# 方式二：新增一个修复 commit
+git commit -m "chore: update registry.json"
+git push
+```
+
+### 多人协作冲突处理
+
+多人同时修改不同插件时，`registry.json` 可能产生合并冲突。处理方式：
+
+1. **预防**：GitHub 仓库建议开启 "Require branches to be up to date before merging"，确保 PR 合并前已 rebase 到最新 `main`
+2. **解决冲突**：与普通代码冲突一致 —— 在本地 `git merge origin/main` 后重新运行 `generate_registry.py`，提交更新后的 `registry.json`
+3. **PR 修正**：若 CI 因 registry 不一致失败，参见上方 "CI 失败修复指南"
 
 ---
 
@@ -305,8 +361,9 @@ pub extern "C" fn run() -> i32 {
 2. 在 `plugins/` 下创建新的插件目录（反向域名格式）
 3. 编写源码 + `manifest.json`，确保通过 `cargo clippy` 和 `cargo test`
 4. 编译为 `wasm32-wasip1`，生成 `plugin.wasm`
-5. 提交 PR，CI 将自动验证并更新 `registry.json`
-6. 维护者审核通过后合并，插件即刻上线
+5. 本地运行 `python3 scripts/generate_registry.py` 更新 `registry.json`
+6. 提交 PR，CI 将验证 `registry.json` 与 `plugins/` 一致性
+7. 维护者审核通过后合并，插件即刻上线
 
 ### 第三方插件市场
 
