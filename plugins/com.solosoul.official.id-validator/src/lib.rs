@@ -43,12 +43,20 @@ fn validate_cn_id(id: &str) -> Result<bool, &'static str> {
     Ok(expected == actual)
 }
 
-/// 插件入口函数
+/// 护照号码基础格式校验
 ///
-/// 返回值：
-/// - `0`: 校验通过或正常执行完毕
-/// - `1`: 字段读取失败
-/// - `2`: 校验不通过
+/// 规则：允许字母和数字，长度 6-12 位（覆盖多国护照常见范围）
+/// 中国护照：E + 8 位数字 或 9 位字母数字
+fn validate_passport_number(num: &str) -> &'static str {
+    if num.len() < 6 || num.len() > 12 {
+        return "长度异常（应为 6-12 位）";
+    }
+    if !num.chars().all(|c| c.is_ascii_alphanumeric()) {
+        return "包含非法字符（仅允许字母和数字）";
+    }
+    ""
+}
+
 /// 简单的 JSON 字符串转义
 fn escape_json(s: &str) -> String {
     let mut result = String::with_capacity(s.len());
@@ -72,68 +80,86 @@ fn escape_json(s: &str) -> String {
 pub extern "C" fn run() -> i32 {
     log_info("ID Validator 启动");
 
-    // 1. 读取身份证字段
+    // 1. 读取身份证字段（容错：错误视为空值，不提前退出）
     let id_card = match get_field("idCard.number") {
-        Ok(v) if !v.is_empty() => {
+        Ok(v) if !v.trim().is_empty() => {
             log_info(&format!("读取到 idCard.number: {}", mask_id(&v)));
-            v
+            v.trim().to_string()
         }
         Ok(_) => {
             log_info("idCard.number 为空，跳过身份证校验");
             String::new()
         }
         Err(e) => {
-            log_error(&format!("读取 idCard.number 失败: {:?}", e));
-            return 1;
+            log_info(&format!("idCard.number 不可用（可能无身份证数据）: {:?}", e));
+            String::new()
         }
     };
 
     // 2. 校验身份证
-    let mut id_valid = false;
+    let mut id_status = "skipped";
     if !id_card.is_empty() {
         match validate_cn_id(&id_card) {
             Ok(true) => {
                 log_info("✅ 身份证校验通过");
-                id_valid = true;
+                id_status = "✅ 通过";
             }
             Ok(false) => {
                 log_error("❌ 身份证校验失败：校验位不匹配");
-                return 2;
+                id_status = "❌ 校验位不匹配";
             }
             Err(msg) => {
                 log_error(&format!("❌ 身份证格式错误: {}", msg));
-                return 2;
+                id_status = "❌ 格式错误";
             }
         }
     }
 
-    // 3. 读取护照字段（可选）
-    let mut passport = String::new();
-    match get_field("passport.number") {
-        Ok(v) if !v.is_empty() => {
+    // 3. 读取护照字段（容错：错误视为空值）
+    let passport = match get_field("passport.number") {
+        Ok(v) if !v.trim().is_empty() => {
             log_info(&format!("读取到 passport.number: {}", mask_id(&v)));
-            passport = v;
-            log_info("✅ 护照号码已记录（格式校验待扩展）");
+            v.trim().to_string()
         }
         Ok(_) => {
             log_info("passport.number 为空，跳过护照校验");
+            String::new()
         }
-        Err(_) => {
-            log_info("passport.number 读取失败（可选字段，忽略）");
+        Err(e) => {
+            log_info(&format!("passport.number 不可用（可能无护照数据）: {:?}", e));
+            String::new()
+        }
+    };
+
+    // 4. 校验护照格式
+    let mut passport_status = "skipped";
+    if !passport.is_empty() {
+        let err = validate_passport_number(&passport);
+        if err.is_empty() {
+            log_info("✅ 护照号码格式正常");
+            passport_status = "✅ 格式正常";
+        } else {
+            log_error(&format!("⚠️ 护照号码格式异常: {}", err));
+            passport_status = "⚠️ 格式异常";
         }
     }
 
     log_info("ID Validator 执行完毕");
 
-    // Phase 2: 结构化结果
+    // Phase 2: 结构化结果（始终返回，包含所有字段状态）
     let mut pairs: Vec<(&str, String)> = Vec::new();
     if !id_card.is_empty() {
         pairs.push(("证件类型", "身份证".to_string()));
         pairs.push(("脱敏号码", mask_id(&id_card)));
-        pairs.push(("校验结果", if id_valid { "✅ 通过".to_string() } else { "❌ 失败".to_string() }));
+        pairs.push(("校验结果", id_status.to_string()));
+    } else {
+        pairs.push(("身份证", "无数据".to_string()));
     }
     if !passport.is_empty() {
         pairs.push(("护照号码", mask_id(&passport)));
+        pairs.push(("护照格式", passport_status.to_string()));
+    } else {
+        pairs.push(("护照", "无数据".to_string()));
     }
     let pairs_json: Vec<String> = pairs.iter().map(|(k, v)| format!(r#"{{"key":"{}","value":"{}"}}"#, escape_json(k), escape_json(v))).collect();
     let result_json = format!(r#"{{"type":"key_value","title":"证件校验","pairs":[{}]}}"#, pairs_json.join(","));
@@ -153,7 +179,7 @@ fn mask_id(id: &str) -> String {
 }
 
 // ============================================================================
-// 单元测试（wasm32-wasi 目标下需使用 wasm-bindgen-test，此处为文档测试）
+// 单元测试
 // ============================================================================
 
 #[cfg(test)]
@@ -183,6 +209,15 @@ mod tests {
     #[test]
     fn test_invalid_cn_id_non_digit() {
         assert!(validate_cn_id("abcdefghijklmnopqr").is_err());
+    }
+
+    #[test]
+    fn test_passport_validation() {
+        assert!(validate_passport_number("E12345678").is_empty());
+        assert!(validate_passport_number("ABC123").is_empty());
+        assert!(!validate_passport_number("ABC").is_empty());      // 太短
+        assert!(!validate_passport_number("ABC1234567890").is_empty()); // 太长
+        assert!(!validate_passport_number("ABC-123").is_empty());   // 含非法字符
     }
 
     #[test]
