@@ -1,6 +1,6 @@
 {
   "version": "1",
-  "updated_at": "2026-05-30T22:06:57Z",
+  "updated_at": "2026-05-30T22:27:19Z",
   "plugins": {
     "com.solosoul.official.address-fmt": {
       "name": "Address Formatter",
@@ -319,8 +319,17 @@
     "com.solosoul.official.form-prefiller": {
       "name": "Form Prefiller",
       "publisher": "SoloSoul Official",
-      "latest_version": "1.0.1",
+      "latest_version": "1.0.2",
       "versions": {
+        "1.0.2": {
+          "sha256": "3ba4f496e33f17c14c1c077370723b40dd53c0caf1fd8ac100bad5a93eaeed2a",
+          "plugin_api_version": "1.0",
+          "min_app_version": "1.0.0",
+          "max_app_version": "999.999.999",
+          "download_url": "https://cdn.jsdelivr.net/gh/Gczmy/SoloSoul_plugin_market@main/plugins/com.solosoul.official.form-prefiller/plugin.wasm",
+          "raw_url": "https://raw.githubusercontent.com/Gczmy/SoloSoul_plugin_market/main/plugins/com.solosoul.official.form-prefiller/plugin.wasm",
+          "released_at": "2026-05-30T22:27:19Z"
+        },
         "1.0.1": {
           "sha256": "4747807792f0922c0156eaae714d950e594302d774075266f94bb886d520498f",
           "plugin_api_version": "1.0",

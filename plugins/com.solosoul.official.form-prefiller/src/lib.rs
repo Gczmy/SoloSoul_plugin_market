@@ -4,12 +4,13 @@
 //! 根据常见表单场景生成 Vault 字段映射表，显示哪些字段已就绪/缺失。
 
 #[cfg(not(test))]
-use solosoul_plugin_sdk::{get_field, log_error, log_info, send_result_json};
+use solosoul_plugin_sdk::{get_field, log_error, log_info, send_result_json, show_dialog, PluginError};
 
 /// 表单字段映射
 struct FieldMapping {
     form_field: &'static str,
     vault_path: &'static str,
+    #[allow(dead_code)]
     description: &'static str,
 }
 
@@ -25,14 +26,14 @@ const SCENARIOS: &[FormScenario] = &[
         id: "visa-application",
         name: "签证申请表",
         fields: &[
-            FieldMapping { form_field: "Full Name", vault_path: "identity.fullName", description: "全名" },
-            FieldMapping { form_field: "Date of Birth", vault_path: "identity.dateOfBirth", description: "出生日期" },
+            FieldMapping { form_field: "Full Name", vault_path: "identity.full_name", description: "全名" },
+            FieldMapping { form_field: "Date of Birth", vault_path: "identity.date_of_birth", description: "出生日期" },
             FieldMapping { form_field: "Nationality", vault_path: "identity.nationality", description: "国籍" },
-            FieldMapping { form_field: "Sex", vault_path: "identity.sex", description: "性别" },
+            FieldMapping { form_field: "Sex", vault_path: "identity.gender", description: "性别" },
             FieldMapping { form_field: "Passport Number", vault_path: "passport.number", description: "护照号" },
             FieldMapping { form_field: "Passport Expiry", vault_path: "passport.expiryDate", description: "护照有效期" },
-            FieldMapping { form_field: "Place of Birth", vault_path: "passport.placeOfBirth", description: "出生地" },
-            FieldMapping { form_field: "Issuing Authority", vault_path: "passport.issuingAuthority", description: "签发机关" },
+            FieldMapping { form_field: "Place of Birth", vault_path: "passport.place_of_birth", description: "出生地" },
+            FieldMapping { form_field: "Issuing Authority", vault_path: "passport.place_of_issue", description: "签发机关" },
             FieldMapping { form_field: "Email", vault_path: "contact.email", description: "电子邮箱" },
             FieldMapping { form_field: "Phone", vault_path: "contact.phone", description: "电话" },
             FieldMapping { form_field: "Home Address", vault_path: "address.street", description: "家庭住址" },
@@ -44,7 +45,7 @@ const SCENARIOS: &[FormScenario] = &[
         id: "hotel-checkin",
         name: "酒店入住",
         fields: &[
-            FieldMapping { form_field: "Guest Name", vault_path: "identity.fullName", description: "客人姓名" },
+            FieldMapping { form_field: "Guest Name", vault_path: "identity.full_name", description: "客人姓名" },
             FieldMapping { form_field: "Phone", vault_path: "contact.phone", description: "联系电话" },
             FieldMapping { form_field: "Email", vault_path: "contact.email", description: "电子邮箱" },
             FieldMapping { form_field: "Passport/ID", vault_path: "passport.number", description: "护照号" },
@@ -55,8 +56,8 @@ const SCENARIOS: &[FormScenario] = &[
         id: "bank-account",
         name: "银行开户",
         fields: &[
-            FieldMapping { form_field: "Full Name", vault_path: "identity.fullName", description: "全名" },
-            FieldMapping { form_field: "Date of Birth", vault_path: "identity.dateOfBirth", description: "出生日期" },
+            FieldMapping { form_field: "Full Name", vault_path: "identity.full_name", description: "全名" },
+            FieldMapping { form_field: "Date of Birth", vault_path: "identity.date_of_birth", description: "出生日期" },
             FieldMapping { form_field: "Nationality", vault_path: "identity.nationality", description: "国籍" },
             FieldMapping { form_field: "ID Number", vault_path: "passport.number", description: "证件号码" },
             FieldMapping { form_field: "Phone", vault_path: "contact.phone", description: "电话" },
@@ -73,7 +74,7 @@ const SCENARIOS: &[FormScenario] = &[
         id: "airline-checkin",
         name: "航空值机",
         fields: &[
-            FieldMapping { form_field: "Passenger Name", vault_path: "identity.fullName", description: "乘客姓名" },
+            FieldMapping { form_field: "Passenger Name", vault_path: "identity.full_name", description: "乘客姓名" },
             FieldMapping { form_field: "Passport Number", vault_path: "passport.number", description: "护照号" },
             FieldMapping { form_field: "Nationality", vault_path: "identity.nationality", description: "国籍" },
             FieldMapping { form_field: "Date of Birth", vault_path: "passport.dateOfBirth", description: "出生日期" },
@@ -112,6 +113,77 @@ fn check_field(path: &str) -> bool {
     match get_field(path) {
         Ok(v) => !v.trim().is_empty(),
         Err(_) => false,
+    }
+}
+
+/// 解析对话框返回的 JSON 结果（无 serde_json 依赖，手动提取）
+fn parse_dialog_result(json_str: &str) -> String {
+    // 查找 "selected" 键，提取其后第一个字符串值
+    let mut key_buf = String::new();
+    let mut in_string = false;
+    let mut chars = json_str.chars().peekable();
+
+    while let Some(ch) = chars.next() {
+        match ch {
+            '"' if !in_string => {
+                in_string = true;
+                key_buf.clear();
+            }
+            '"' if in_string => {
+                in_string = false;
+                if key_buf == "selected" {
+                    // 跳过冒号和空白，找下一个字符串
+                    while let Some(&next_ch) = chars.peek() {
+                        if next_ch == '"' {
+                            chars.next(); // consume "
+                            let mut val = String::new();
+                            while let Some(c) = chars.next() {
+                                if c == '"' { break; }
+                                if c == '\\' {
+                                    if let Some(escaped) = chars.next() {
+                                        match escaped {
+                                            'n' => val.push('\n'),
+                                            'r' => val.push('\r'),
+                                            't' => val.push('\t'),
+                                            '\\' => val.push('\\'),
+                                            '"' => val.push('"'),
+                                            c => val.push(c),
+                                        }
+                                    }
+                                } else {
+                                    val.push(c);
+                                }
+                            }
+                            return val;
+                        }
+                        if next_ch.is_alphanumeric() || next_ch == '_' || next_ch == '-' { break; }
+                        chars.next();
+                    }
+                }
+            }
+            c if in_string => key_buf.push(c),
+            ':' => { key_buf.clear(); }
+            _ => {}
+        }
+    }
+    String::new()
+}
+
+/// 从 Dart 端传入的初始参数中读取指定 key
+#[cfg(not(test))]
+fn get_param(key: &str) -> Result<String, i32> {
+    extern "C" {
+        fn solosoul_get_param(key_ptr: *const u8, key_len: usize, out_ptr: *mut u8, out_cap: usize) -> i32;
+    }
+    let mut buf = vec![0u8; 256];
+    let ret = unsafe {
+        solosoul_get_param(key.as_ptr(), key.len(), buf.as_mut_ptr(), buf.len())
+    };
+    if ret == 0 {
+        let len = buf.iter().position(|&b| b == 0).unwrap_or(buf.len());
+        Ok(String::from_utf8_lossy(&buf[..len]).to_string())
+    } else {
+        Err(ret)
     }
 }
 
@@ -181,23 +253,55 @@ fn escape_json(s: &str) -> String {
 pub extern "C" fn run() -> i32 {
     log_info("Form Prefiller 启动 — 生成表单字段映射");
 
-    let query = match get_field("formPrefiller.scenario") {
-        Ok(v) => v.trim().to_string(),
-        Err(e) => {
-            log_error(&format!("获取场景设置失败: {:?}", e));
-            return -1;
+    // 1. 优先尝试读取 Dart 端传入的场景参数
+    let scenario_query = match get_param("scenario_id") {
+        Ok(id) if !id.is_empty() => {
+            log_info(&format!("使用传入场景参数: {}", id));
+            id
+        }
+        _ => {
+            // 2. 无参数时，通过通用对话框请求用户选择场景（向后兼容）
+            let dialog_config = r#"{
+                "title": {"zh": "选择表单场景", "en": "Select Form Scenario"},
+                "description": {"zh": "选择场景后，插件将生成 Vault 字段到表单字段的映射表。", "en": "After selecting a scenario, the plugin will generate a mapping table from Vault fields to form fields."},
+                "type": "radio_list",
+                "items": [
+                    {"id": "visa-application", "label": {"zh": "签证申请表", "en": "Visa Application"}},
+                    {"id": "hotel-checkin", "label": {"zh": "酒店入住", "en": "Hotel Check-in"}},
+                    {"id": "bank-account", "label": {"zh": "银行开户", "en": "Bank Account"}},
+                    {"id": "airline-checkin", "label": {"zh": "航空值机", "en": "Airline Check-in"}}
+                ]
+            }"#;
+
+            let result_json = match show_dialog(dialog_config) {
+                Ok(json) => json,
+                Err(PluginError::UserDenied) => {
+                    log_info("用户取消场景选择");
+                    return 0;
+                }
+                Err(PluginError::TtlExpired) => {
+                    log_error("场景选择超时，请重试");
+                    return -3;
+                }
+                Err(e) => {
+                    log_error(&format!("对话框错误: {:?}", e));
+                    return -1;
+                }
+            };
+
+            let query = parse_dialog_result(&result_json);
+            if query.is_empty() {
+                log_error("未选择场景");
+                return -2;
+            }
+            query
         }
     };
 
-    if query.is_empty() {
-        log_error("未设置目标场景 (formPrefiller.scenario)");
-        return -2;
-    }
-
-    let scenario = match find_scenario(&query) {
+    let scenario = match find_scenario(&scenario_query) {
         Some(s) => s,
         None => {
-            log_error(&format!("未知场景: '{}'", query));
+            log_error(&format!("未知场景: '{}'", scenario_query));
             log_info("支持的场景:");
             for s in SCENARIOS {
                 log_info(&format!("  - {} ({})", s.name, s.id));
@@ -257,7 +361,7 @@ mod tests {
     fn test_generate_report() {
         let scenario = &SCENARIOS[0];
         let results = vec![
-            ("Full Name".to_string(), "identity.fullName".to_string(), true),
+            ("Full Name".to_string(), "identity.full_name".to_string(), true),
             ("Passport Number".to_string(), "passport.number".to_string(), false),
         ];
         let report = generate_report(scenario, &results);
