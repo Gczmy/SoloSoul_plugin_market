@@ -134,6 +134,7 @@ def main():
     }
 
     # 合并旧 registry：保留历史版本记录 + 保留未变更版本的 released_at
+    old_registry = None
     if REGISTRY_FILE.exists():
         try:
             with open(REGISTRY_FILE, "r", encoding="utf-8") as f:
@@ -158,6 +159,21 @@ def main():
                         print(f"  Preserved historical version: {plugin_id} @ {version}")
         except Exception as e:
             print(f"Warning: failed to merge old registry: {e}", file=sys.stderr)
+
+    # 如果插件内容没有任何变化，保留旧的 updated_at，避免 CI 因时间戳差异而失败
+    if old_registry is not None:
+        def normalize_for_compare(obj):
+            """用于比较两个 registry 是否内容相同（忽略 updated_at 和 released_at）"""
+            copy = json.loads(json.dumps(obj))
+            copy.pop("updated_at", None)
+            for p in copy.get("plugins", {}).values():
+                for v in p.get("versions", {}).values():
+                    v.pop("released_at", None)
+            return copy
+
+        if normalize_for_compare(old_registry) == normalize_for_compare(registry):
+            registry["updated_at"] = old_registry.get("updated_at", registry["updated_at"])
+            print("  Plugin contents unchanged, preserving old updated_at")
 
     with open(REGISTRY_FILE, "w", encoding="utf-8") as f:
         json.dump(registry, f, indent=2, ensure_ascii=False)
