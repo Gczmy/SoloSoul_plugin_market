@@ -210,49 +210,77 @@ fn parse_dialog_result(json_str: &str) -> String {
     String::new()
 }
 
+/// 从 Dart 端传入的初始参数中读取指定 key
+/// 对应 Host Function: solosoul_get_param
+#[cfg(not(test))]
+fn get_param(key: &str) -> Result<String, i32> {
+    extern "C" {
+        fn solosoul_get_param(key_ptr: *const u8, key_len: usize, out_ptr: *mut u8, out_cap: usize) -> i32;
+    }
+    let mut buf = vec![0u8; 256];
+    let ret = unsafe {
+        solosoul_get_param(key.as_ptr(), key.len(), buf.as_mut_ptr(), buf.len())
+    };
+    if ret == 0 {
+        let len = buf.iter().position(|&b| b == 0).unwrap_or(buf.len());
+        Ok(String::from_utf8_lossy(&buf[..len]).to_string())
+    } else {
+        Err(ret)
+    }
+}
+
 /// 插件入口
 #[cfg(not(test))]
 #[no_mangle]
 pub extern "C" fn run() -> i32 {
     log_info("Doc Checklist 启动 — 检查材料清单");
 
-    // 1. 通过通用对话框请求用户选择场景
-    let dialog_config = r#"{
-        "title": {"zh": "选择签证/业务类型", "en": "Select Visa/Business Type"},
-        "description": {"zh": "选择场景后，插件将请求访问相关字段，请继续授权。", "en": "After selecting a scenario, the plugin will request access to relevant fields."},
-        "type": "radio_list",
-        "items": [
-            {"id": "japan-visa", "label": {"zh": "日本签证", "en": "Japan Visa"}},
-            {"id": "us-visa", "label": {"zh": "美国签证 (B1/B2)", "en": "US Visa (B1/B2)"}},
-            {"id": "schengen-visa", "label": {"zh": "申根签证", "en": "Schengen Visa"}},
-            {"id": "uk-visa", "label": {"zh": "英国签证", "en": "UK Visa"}},
-            {"id": "bank-account", "label": {"zh": "银行开户", "en": "Bank Account"}},
-            {"id": "hotel-checkin", "label": {"zh": "酒店入住", "en": "Hotel Check-in"}}
-        ]
-    }"#;
+    // 1. 优先尝试读取 Dart 端传入的场景参数
+    let scenario_query = match get_param("scenario_id") {
+        Ok(id) if !id.is_empty() => {
+            log_info(&format!("使用传入场景参数: {}", id));
+            id
+        }
+        _ => {
+            // 2. 无参数时，通过通用对话框请求用户选择场景（向后兼容）
+            let dialog_config = r#"{
+                "title": {"zh": "选择签证/业务类型", "en": "Select Visa/Business Type"},
+                "description": {"zh": "选择场景后，插件将请求访问相关字段，请继续授权。", "en": "After selecting a scenario, the plugin will request access to relevant fields."},
+                "type": "radio_list",
+                "items": [
+                    {"id": "japan-visa", "label": {"zh": "日本签证", "en": "Japan Visa"}},
+                    {"id": "us-visa", "label": {"zh": "美国签证 (B1/B2)", "en": "US Visa (B1/B2)"}},
+                    {"id": "schengen-visa", "label": {"zh": "申根签证", "en": "Schengen Visa"}},
+                    {"id": "uk-visa", "label": {"zh": "英国签证", "en": "UK Visa"}},
+                    {"id": "bank-account", "label": {"zh": "银行开户", "en": "Bank Account"}},
+                    {"id": "hotel-checkin", "label": {"zh": "酒店入住", "en": "Hotel Check-in"}}
+                ]
+            }"#;
 
-    let result_json = match show_dialog(dialog_config) {
-        Ok(json) => json,
-        Err(PluginError::UserDenied) => {
-            log_info("用户取消场景选择");
-            return 0;
-        }
-        Err(PluginError::TtlExpired) => {
-            log_error("场景选择超时，请重试");
-            return -3;
-        }
-        Err(e) => {
-            log_error(&format!("对话框错误: {:?}", e));
-            return -1;
+            let result_json = match show_dialog(dialog_config) {
+                Ok(json) => json,
+                Err(PluginError::UserDenied) => {
+                    log_info("用户取消场景选择");
+                    return 0;
+                }
+                Err(PluginError::TtlExpired) => {
+                    log_error("场景选择超时，请重试");
+                    return -3;
+                }
+                Err(e) => {
+                    log_error(&format!("对话框错误: {:?}", e));
+                    return -1;
+                }
+            };
+
+            let query = parse_dialog_result(&result_json);
+            if query.is_empty() {
+                log_error("未选择场景");
+                return -2;
+            }
+            query
         }
     };
-
-    // 2. 解析用户选择
-    let scenario_query = parse_dialog_result(&result_json);
-    if scenario_query.is_empty() {
-        log_error("未选择场景");
-        return -2;
-    }
 
     let scenario = match find_scenario(&scenario_query) {
         Some(s) => s,
