@@ -1,7 +1,7 @@
 {
   "plugin_id": "com.solosoul.official.form-prefiller",
   "name": "Form Prefiller",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "plugin_api_version": "1.0",
   "min_app_version": "1.0.0",
   "max_app_version": "999.999.999",
@@ -18,7 +18,7 @@
     "passport.expiryDate",
     "passport.dateOfBirth",
     "passport.place_of_birth",
-    "passport.place_of_issue",
+    "passport.authority",
     "contact.email",
     "contact.phone",
     "address.street",
@@ -28,7 +28,7 @@
     "address.country",
     "employment.company",
     "employment.position",
-    "card.number"
+    "card.cardNumber"
   ],
   "network_policy": {
     "block_all_outbound": true

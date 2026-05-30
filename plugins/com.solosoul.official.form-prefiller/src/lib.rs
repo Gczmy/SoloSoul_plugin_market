@@ -33,7 +33,7 @@ const SCENARIOS: &[FormScenario] = &[
             FieldMapping { form_field: "Passport Number", vault_path: "passport.number", description: "护照号" },
             FieldMapping { form_field: "Passport Expiry", vault_path: "passport.expiryDate", description: "护照有效期" },
             FieldMapping { form_field: "Place of Birth", vault_path: "passport.place_of_birth", description: "出生地" },
-            FieldMapping { form_field: "Issuing Authority", vault_path: "passport.place_of_issue", description: "签发机关" },
+            FieldMapping { form_field: "Issuing Authority", vault_path: "passport.authority", description: "签发机关" },
             FieldMapping { form_field: "Email", vault_path: "contact.email", description: "电子邮箱" },
             FieldMapping { form_field: "Phone", vault_path: "contact.phone", description: "电话" },
             FieldMapping { form_field: "Home Address", vault_path: "address.street", description: "家庭住址" },
@@ -49,7 +49,7 @@ const SCENARIOS: &[FormScenario] = &[
             FieldMapping { form_field: "Phone", vault_path: "contact.phone", description: "联系电话" },
             FieldMapping { form_field: "Email", vault_path: "contact.email", description: "电子邮箱" },
             FieldMapping { form_field: "Passport/ID", vault_path: "passport.number", description: "护照号" },
-            FieldMapping { form_field: "Credit Card", vault_path: "card.number", description: "信用卡" },
+            FieldMapping { form_field: "Credit Card", vault_path: "card.cardNumber", description: "信用卡" },
         ],
     },
     FormScenario {
