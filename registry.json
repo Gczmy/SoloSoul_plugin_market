@@ -1,6 +1,6 @@
 {
   "version": "1",
-  "updated_at": "2026-05-30T19:48:58Z",
+  "updated_at": "2026-05-30T22:06:57Z",
   "plugins": {
     "com.solosoul.official.address-fmt": {
       "name": "Address Formatter",
@@ -433,8 +433,17 @@
     "com.solosoul.official.mrz-encoder": {
       "name": "MRZ Encoder",
       "publisher": "SoloSoul Official",
-      "latest_version": "1.0.1",
+      "latest_version": "1.0.2",
       "versions": {
+        "1.0.2": {
+          "sha256": "930788cc4fe3118a5ecdc9cb2c4c2d978124fecb69d926291664359e74d26ad7",
+          "plugin_api_version": "1.0",
+          "min_app_version": "1.0.0",
+          "max_app_version": "999.999.999",
+          "download_url": "https://cdn.jsdelivr.net/gh/Gczmy/SoloSoul_plugin_market@main/plugins/com.solosoul.official.mrz-encoder/plugin.wasm",
+          "raw_url": "https://raw.githubusercontent.com/Gczmy/SoloSoul_plugin_market/main/plugins/com.solosoul.official.mrz-encoder/plugin.wasm",
+          "released_at": "2026-05-30T22:06:46Z"
+        },
         "1.0.1": {
           "sha256": "74a1977db53c0e1b6b8fb79ae83b0b2f4c277a7351178ab1310b2fddaa1a3ba7",
           "plugin_api_version": "1.0",
