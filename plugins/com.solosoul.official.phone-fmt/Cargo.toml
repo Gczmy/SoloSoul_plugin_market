@@ -1,6 +1,6 @@
 [package]
 name = "phone-fmt"
-version = "1.0.0"
+version = "1.0.2"
 edition = "2021"
 authors = ["SoloSoul Official"]
 description = "Phone Formatter — Format phone numbers according to country conventions"

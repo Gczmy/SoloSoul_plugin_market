@@ -181,17 +181,20 @@ pub extern "C" fn run() -> i32 {
     log_info("Phone Formatter 启动 — 格式化电话号码");
 
     let phone = match get_field("contact.phone") {
-        Ok(v) => v,
+        Ok(v) if !v.trim().is_empty() => v,
+        Ok(_) => {
+            log_error("电话号码为空");
+            let result_json = r#"{"type":"text","status":"empty_phone","content":"电话号码为空。请检查 Vault 中的联系方式数据。"}"#;
+            let _ = send_result_json(result_json);
+            return 0;
+        }
         Err(e) => {
             log_error(&format!("获取电话失败: {:?}", e));
-            return -1;
+            let result_json = r#"{"type":"text","status":"no_phone","content":"未找到电话号码。请在 Vault 的「联系方式」分区中添加电话（支持标签：手机、电话、Phone 等）。"}"#;
+            let _ = send_result_json(result_json);
+            return 0;
         }
     };
-
-    if phone.trim().is_empty() {
-        log_error("电话号码为空");
-        return -2;
-    }
 
     let country = get_field("address.country").unwrap_or_default();
 

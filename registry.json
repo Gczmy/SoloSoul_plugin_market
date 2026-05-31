@@ -1,6 +1,6 @@
 {
   "version": "1",
-  "updated_at": "2026-05-30T23:53:09Z",
+  "updated_at": "2026-05-31T00:21:34Z",
   "plugins": {
     "com.solosoul.official.address-fmt": {
       "name": "Address Formatter",
@@ -583,8 +583,17 @@
     "com.solosoul.official.phone-fmt": {
       "name": "Phone Formatter",
       "publisher": "SoloSoul Official",
-      "latest_version": "1.0.1",
+      "latest_version": "1.0.2",
       "versions": {
+        "1.0.2": {
+          "sha256": "bd31d94ad9c59867262183944ec4e4421395f090e94d3086054d87d5ff0d8876",
+          "plugin_api_version": "1.0",
+          "min_app_version": "1.0.0",
+          "max_app_version": "999.999.999",
+          "download_url": "https://cdn.jsdelivr.net/gh/Gczmy/SoloSoul_plugin_market@main/plugins/com.solosoul.official.phone-fmt/plugin.wasm",
+          "raw_url": "https://raw.githubusercontent.com/Gczmy/SoloSoul_plugin_market/main/plugins/com.solosoul.official.phone-fmt/plugin.wasm",
+          "released_at": "2026-05-31T00:21:34Z"
+        },
         "1.0.1": {
           "sha256": "e6422fa20a6b8d69785b89c47a4e28ead112d77907737f274a1462014642ac61",
           "plugin_api_version": "1.0",
