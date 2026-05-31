@@ -125,17 +125,20 @@ pub extern "C" fn run() -> i32 {
     log_info("TOTP Generator 启动 — 生成动态验证码");
 
     let secret = match get_field("security.totpSecret") {
-        Ok(s) => s.trim().to_uppercase(),
+        Ok(s) if !s.trim().is_empty() => s.trim().to_uppercase(),
+        Ok(_) => {
+            log_error("TOTP Secret 为空");
+            let result_json = r#"{"type":"text","status":"empty_totp_secret","content":"TOTP Secret 为空。请在 Vault 的「安全信息」中填写 TOTP 密钥。"}"#;
+            let _ = send_result_json(result_json);
+            return 0;
+        }
         Err(e) => {
             log_error(&format!("获取 TOTP Secret 失败: {:?}", e));
-            return -1;
+            let result_json = r#"{"type":"text","status":"no_totp_secret","content":"未找到 TOTP 密钥。请在 Vault 中创建「安全信息」分区，并添加 totpSecret 字段。"}"#;
+            let _ = send_result_json(result_json);
+            return 0;
         }
     };
-
-    if secret.is_empty() {
-        log_error("TOTP Secret 为空");
-        return -2;
-    }
 
     let issuer = get_field("security.totpIssuer").unwrap_or_default();
     let account = get_field("security.totpAccount").unwrap_or_default();
