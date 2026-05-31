@@ -207,17 +207,20 @@ pub extern "C" fn run() -> i32 {
     log_info("Travel Footprint 启动 — 分析旅行足迹");
 
     let countries = match get_field("travel.visitedCountries") {
-        Ok(v) => v,
+        Ok(v) if !v.trim().is_empty() => v,
+        Ok(_) => {
+            log_error("旅行记录为空");
+            let result_json = r#"{"type":"text","status":"empty_travel","action":"fill_visited_countries","content":"旅行记录为空。请在 Vault 的「出行记录」中填写 visitedCountries 字段（如：中国,日本,美国）。"}"#;
+            let _ = send_result_json(result_json);
+            return 0;
+        }
         Err(e) => {
             log_error(&format!("获取旅行记录失败: {:?}", e));
-            return -1;
+            let result_json = r#"{"type":"text","status":"no_travel","action":"create_travel_object","content":"未找到旅行记录。请在 Vault 中创建「出行记录」分区，并添加 visitedCountries 字段。"}"#;
+            let _ = send_result_json(result_json);
+            return 0;
         }
     };
-
-    if countries.trim().is_empty() {
-        log_error("旅行记录为空");
-        return -2;
-    }
 
     let nationality = get_field("passport.nationality").unwrap_or_default();
     let visa_count = get_field("visa.count").unwrap_or_default();
