@@ -28,5 +28,7 @@
       "name": "Phone Formatter",
       "description": "Format phone numbers from the Vault according to target country/region dialing standards."
     }
-  }
+  },
+  "tier": "p0",
+  "category": "formatter"
 }

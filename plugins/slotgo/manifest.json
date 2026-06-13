@@ -32,5 +32,7 @@
       "name": "SlotGo",
       "description": "UK Visa appointment system assistant framework to help auto-fill and submit booking forms to the TLScontact system."
     }
-  }
+  },
+  "tier": "p1",
+  "category": "network"
 }

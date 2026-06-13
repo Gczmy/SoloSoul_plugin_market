@@ -89,6 +89,8 @@ def scan_plugins(owner: str, repo: str, branch: str) -> dict:
                 "versions": {},
                 "description": manifest.get("description"),
                 "homepage": manifest.get("homepage"),
+                "tier": manifest.get("tier", "p3"),
+                "category": manifest.get("category", "utility"),
             }
             # 提取多语言信息
             i18n = manifest.get("i18n")

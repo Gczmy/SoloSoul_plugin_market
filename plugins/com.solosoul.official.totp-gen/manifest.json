@@ -29,5 +29,7 @@
       "name": "TOTP Generator",
       "description": "Generate 6-digit TOTP dynamic verification codes based on the 2FA Secret stored in the Vault, following RFC 6238."
     }
-  }
+  },
+  "tier": "p0",
+  "category": "generator"
 }

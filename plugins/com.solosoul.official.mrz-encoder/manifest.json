@@ -34,5 +34,7 @@
       "name": "MRZ Encoder",
       "description": "Encode passport/ID card information from the Vault into ICAO Doc 9303 standard Machine Readable Zone (MRZ) format."
     }
-  }
+  },
+  "tier": "p0",
+  "category": "encoder"
 }

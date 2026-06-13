@@ -29,5 +29,7 @@
       "name": "Calendar Events",
       "description": "Extract date-related information from the Vault and generate a calendar event preview list."
     }
-  }
+  },
+  "tier": "p0",
+  "category": "calendar"
 }

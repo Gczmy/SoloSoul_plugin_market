@@ -29,5 +29,7 @@
       "name": "Travel Footprint",
       "description": "Analyze visa and travel records in the Vault to generate country visit statistics, favorite regions, and travel timeline reports."
     }
-  }
+  },
+  "tier": "p0",
+  "category": "report"
 }

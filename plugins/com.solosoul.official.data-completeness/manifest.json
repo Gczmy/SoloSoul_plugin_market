@@ -46,5 +46,7 @@
       "name": "Data Completeness",
       "description": "Scan all sections in the Vault, calculate completeness percentage, and generate a report highlighting missing key fields."
     }
-  }
+  },
+  "tier": "p2",
+  "category": "report"
 }

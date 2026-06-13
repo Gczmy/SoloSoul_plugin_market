@@ -38,5 +38,7 @@
       "name": "Digital Will",
       "description": "Generate digital estate allocation suggestions based on data stored in the Vault."
     }
-  }
+  },
+  "tier": "p2",
+  "category": "legal"
 }

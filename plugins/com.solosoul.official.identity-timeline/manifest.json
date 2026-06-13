@@ -37,5 +37,7 @@
       "name": "Identity Timeline",
       "description": "Display the user's identity evolution over time, including education, work, visas, and asset acquisition milestones."
     }
-  }
+  },
+  "tier": "p0",
+  "category": "report"
 }

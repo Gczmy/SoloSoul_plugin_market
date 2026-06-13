@@ -35,5 +35,7 @@
       "name": "Emergency Card",
       "description": "Generate an emergency medical/contact information card. Data is stored locally with no network required."
     }
-  }
+  },
+  "tier": "p2",
+  "category": "generator"
 }

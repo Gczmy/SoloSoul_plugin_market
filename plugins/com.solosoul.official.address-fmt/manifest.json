@@ -33,5 +33,7 @@
       "name": "Address Formatter",
       "description": "Format all addresses in the Vault according to target country/region standards. Supports 10 countries/regions including China, US, UK, Japan, Germany, France, Canada, Australia, Singapore, and South Korea."
     }
-  }
+  },
+  "tier": "p0",
+  "category": "formatter"
 }

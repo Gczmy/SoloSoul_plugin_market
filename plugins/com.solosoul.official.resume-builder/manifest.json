@@ -45,5 +45,7 @@
       "name": "Resume Builder",
       "description": "Automatically generate a standard-format resume by extracting education, work experience, skills, and languages from the Vault."
     }
-  }
+  },
+  "tier": "p2",
+  "category": "generator"
 }

@@ -44,5 +44,7 @@
       "name": "Form Prefiller",
       "description": "Generate a mapping table from Vault fields to target form fields based on the scenario (visa, bank, hotel, etc.)."
     }
-  }
+  },
+  "tier": "p2",
+  "category": "report"
 }

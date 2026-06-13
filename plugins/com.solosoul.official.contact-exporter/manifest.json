@@ -37,5 +37,7 @@
       "name": "Contact Exporter",
       "description": "Export contact information from the Vault into standard vCard format."
     }
-  }
+  },
+  "tier": "p0",
+  "category": "exporter"
 }

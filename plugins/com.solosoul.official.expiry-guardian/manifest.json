@@ -30,5 +30,7 @@
       "name": "Expiry Guardian",
       "description": "Scan all documents (passports, visas, ID cards, credit cards) for expiration dates and sort by urgency (30/60/90/180 days)."
     }
-  }
+  },
+  "tier": "p0",
+  "category": "reminder"
 }

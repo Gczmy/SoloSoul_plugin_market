@@ -39,5 +39,7 @@
       "name": "Doc Checklist",
       "description": "Infer existing and missing materials from the Vault based on target scenarios (visa application, bank account opening, etc.)."
     }
-  }
+  },
+  "tier": "p0",
+  "category": "planner"
 }

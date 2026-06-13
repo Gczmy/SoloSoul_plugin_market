@@ -36,5 +36,7 @@
       "name": "Tax Profile",
       "description": "Summarize basic tax filing data based on the user's country of residence, income sources, and tax residency status."
     }
-  }
+  },
+  "tier": "p2",
+  "category": "report"
 }

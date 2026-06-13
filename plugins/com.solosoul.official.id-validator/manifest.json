@@ -27,5 +27,7 @@
       "name": "ID Validator",
       "description": "Validate ID number formats and check digits. Current version fully supports Chinese Resident ID Card validation, with experimental passport format checking."
     }
-  }
+  },
+  "tier": "p0",
+  "category": "validator"
 }

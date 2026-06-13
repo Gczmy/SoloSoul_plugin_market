@@ -31,5 +31,7 @@
       "name": "Packing List",
       "description": "Intelligently generate a packing list suggestion based on travel records and destination information in the Vault."
     }
-  }
+  },
+  "tier": "p0",
+  "category": "planner"
 }

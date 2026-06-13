@@ -37,5 +37,7 @@
       "name": "Namecard Generator",
       "description": "Generate an encrypted digital business card as a QR code, decryptable only by scanning with SoloSoul."
     }
-  }
+  },
+  "tier": "p0",
+  "category": "generator"
 }
