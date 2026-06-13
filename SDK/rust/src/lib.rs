@@ -57,6 +57,78 @@ extern "C" {
         out_cap: usize,
     ) -> i32;
 
+    /// 发起异步 HTTP 请求
+    ///
+    /// # 参数
+    /// - `method_ptr`: HTTP 方法 UTF-8 字节指针（"GET"/"POST"/"PUT"/"PATCH"/"DELETE"）
+    /// - `method_len`: 方法长度
+    /// - `url_ptr`: URL UTF-8 字节指针
+    /// - `url_len`: URL 长度
+    /// - `body_ptr`: 请求体 UTF-8 字节指针（可为空）
+    /// - `body_len`: 请求体长度
+    /// - `out_handle_ptr`: 输出句柄（u32 little-endian）指针
+    ///
+    /// # 返回值
+    /// - `0`: 成功
+    /// - `-6`: 网络超时
+    /// - `-8`: 频率超限
+    /// - `-10`: 域名未授权
+    /// - `-11`: 非法参数
+    fn solosoul_http_request(
+        method_ptr: *const u8,
+        method_len: usize,
+        url_ptr: *const u8,
+        url_len: usize,
+        body_ptr: *const u8,
+        body_len: usize,
+        out_handle_ptr: *mut u8,
+    ) -> i32;
+
+    /// 轮询异步 HTTP 请求状态
+    ///
+    /// # 参数
+    /// - `handle`: 请求句柄
+    /// - `out_status_ptr`: 输出 HTTP 状态码（u16 little-endian）指针
+    /// - `out_len_ptr`: 输出响应体长度（u32 little-endian）指针
+    ///
+    /// # 返回值
+    /// - `0`: 已完成
+    /// - `1`: 进行中
+    /// - 负数: 错误码
+    fn solosoul_http_poll(handle: u32, out_status_ptr: *mut u8, out_len_ptr: *mut u8) -> i32;
+
+    /// 读取异步 HTTP 响应体
+    ///
+    /// # 参数
+    /// - `handle`: 请求句柄
+    /// - `out_ptr`: 输出缓冲区指针
+    /// - `out_cap`: 输出缓冲区容量
+    /// - `written_ptr`: 实际写入长度（u32 little-endian）指针
+    ///
+    /// # 返回值
+    /// - `0`: 成功
+    /// - `-4`: 缓冲区不足
+    /// - 负数: 错误码
+    fn solosoul_http_read(
+        handle: u32,
+        out_ptr: *mut u8,
+        out_cap: usize,
+        written_ptr: *mut u8,
+    ) -> i32;
+
+    /// 关闭异步 HTTP 请求句柄
+    ///
+    /// # 参数
+    /// - `handle`: 请求句柄
+    ///
+    /// # 返回值
+    /// - `0`: 成功
+    /// - `-11`: 非法句柄
+    fn solosoul_http_close(handle: u32) -> i32;
+
+    /// 同步睡眠（毫秒）
+    fn solosoul_sleep(ms: i64) -> i32;
+
     /// 写审计日志
     ///
     /// # 参数
@@ -64,12 +136,7 @@ extern "C" {
     /// - `level_len`: 日志级别长度
     /// - `msg_ptr`: 消息 UTF-8 字节指针
     /// - `msg_len`: 消息长度
-    fn solosoul_log(
-        level_ptr: *const u8,
-        level_len: usize,
-        msg_ptr: *const u8,
-        msg_len: usize,
-    );
+    fn solosoul_log(level_ptr: *const u8, level_len: usize, msg_ptr: *const u8, msg_len: usize);
 
     /// 获取 Unix 时间戳（毫秒）
     fn solosoul_get_timestamp() -> i64;
@@ -263,6 +330,152 @@ pub fn post_json(url: &str, json_body: &str) -> Result<String, PluginError> {
     String::from_utf8(bytes).map_err(|_| PluginError::Unknown)
 }
 
+/// 异步 HTTP 请求轮询状态
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum HttpPollState {
+    /// 请求仍在进行中
+    Pending,
+    /// 请求已完成
+    Completed {
+        /// HTTP 状态码
+        status: u16,
+        /// 响应体字节长度
+        body_len: usize,
+    },
+}
+
+/// 异步 HTTP 请求句柄
+///
+/// # 示例
+/// ```ignore
+/// let req = HttpRequest::new("POST", "https://api.example.com/submit", r#"{"x":1}"#)?;
+/// loop {
+///     match req.poll()? {
+///         HttpPollState::Pending => sleep(10),
+///         HttpPollState::Completed { body_len, .. } => {
+///             let mut buf = vec![MaybeUninit::<u8>::uninit(); body_len + 1];
+///             let resp = req.read(&mut buf)?;
+///             break;
+///         }
+///     }
+/// }
+/// ```
+pub struct HttpRequest {
+    handle: u32,
+}
+
+impl HttpRequest {
+    /// 发起异步 HTTP 请求
+    pub fn new(method: &str, url: &str, body: &str) -> Result<Self, PluginError> {
+        let mut handle_buf: [MaybeUninit<u8>; 4] = [MaybeUninit::uninit(); 4];
+
+        let code = unsafe {
+            solosoul_http_request(
+                method.as_ptr(),
+                method.len(),
+                url.as_ptr(),
+                url.len(),
+                body.as_ptr(),
+                body.len(),
+                handle_buf.as_mut_ptr() as *mut u8,
+            )
+        };
+
+        if code != 0 {
+            return Err(PluginError::from_code(code));
+        }
+
+        let handle = read_u32(&handle_buf);
+        Ok(Self { handle })
+    }
+
+    /// 轮询请求状态
+    pub fn poll(&self) -> Result<HttpPollState, PluginError> {
+        let mut status_buf: [MaybeUninit<u8>; 2] = [MaybeUninit::uninit(); 2];
+        let mut len_buf: [MaybeUninit<u8>; 4] = [MaybeUninit::uninit(); 4];
+
+        let code = unsafe {
+            solosoul_http_poll(
+                self.handle,
+                status_buf.as_mut_ptr() as *mut u8,
+                len_buf.as_mut_ptr() as *mut u8,
+            )
+        };
+
+        match code {
+            0 => Ok(HttpPollState::Completed {
+                status: read_u16(&status_buf),
+                body_len: read_u32(&len_buf) as usize,
+            }),
+            1 => Ok(HttpPollState::Pending),
+            _ => Err(PluginError::from_code(code)),
+        }
+    }
+
+    /// 读取已完成请求的响应体
+    ///
+    /// `buf` 容量应至少为 `body_len + 1`（包含 Host 写入的结尾 `\0`）。
+    pub fn read(&self, buf: &mut [MaybeUninit<u8>]) -> Result<String, PluginError> {
+        let mut written_buf: [MaybeUninit<u8>; 4] = [MaybeUninit::uninit(); 4];
+
+        let code = unsafe {
+            solosoul_http_read(
+                self.handle,
+                buf.as_mut_ptr() as *mut u8,
+                buf.len(),
+                written_buf.as_mut_ptr() as *mut u8,
+            )
+        };
+
+        if code != 0 {
+            return Err(PluginError::from_code(code));
+        }
+
+        let len = read_u32(&written_buf) as usize;
+        let bytes: Vec<u8> = buf[..len]
+            .iter()
+            .map(|b| unsafe { b.assume_init() })
+            .collect();
+
+        String::from_utf8(bytes).map_err(|_| PluginError::Unknown)
+    }
+
+    /// 关闭请求句柄，释放资源
+    pub fn close(self) {
+        unsafe {
+            let _ = solosoul_http_close(self.handle);
+        }
+    }
+}
+
+/// 同步睡眠（毫秒）
+///
+/// # 示例
+/// ```ignore
+/// sleep(10);
+/// ```
+pub fn sleep(ms: i64) {
+    unsafe {
+        let _ = solosoul_sleep(ms);
+    }
+}
+
+/// 异步 POST JSON（内部轮询，直到请求完成）
+///
+/// 如果需要在请求过程中执行其他逻辑，请直接使用 [`HttpRequest`]。
+pub fn post_json_async(url: &str, json_body: &str) -> Result<String, PluginError> {
+    let req = HttpRequest::new("POST", url, json_body)?;
+    loop {
+        match req.poll()? {
+            HttpPollState::Pending => sleep(10),
+            HttpPollState::Completed { body_len, .. } => {
+                let mut buf = vec![MaybeUninit::<u8>::uninit(); body_len + 1];
+                return req.read(&mut buf);
+            }
+        }
+    }
+}
+
 /// 写审计日志
 ///
 /// # 示例
@@ -272,12 +485,7 @@ pub fn post_json(url: &str, json_body: &str) -> Result<String, PluginError> {
 /// ```
 pub fn log(level: &str, message: &str) {
     unsafe {
-        solosoul_log(
-            level.as_ptr(),
-            level.len(),
-            message.as_ptr(),
-            message.len(),
-        );
+        solosoul_log(level.as_ptr(), level.len(), message.as_ptr(), message.len());
     }
 }
 
@@ -379,12 +587,8 @@ pub fn get_data_structure_tree() -> Result<String, PluginError> {
     const INITIAL_CAP: usize = 65536;
     let mut buf: [MaybeUninit<u8>; INITIAL_CAP] = [MaybeUninit::uninit(); INITIAL_CAP];
 
-    let code = unsafe {
-        solosoul_get_data_structure_tree(
-            buf.as_mut_ptr() as *mut u8,
-            INITIAL_CAP,
-        )
-    };
+    let code =
+        unsafe { solosoul_get_data_structure_tree(buf.as_mut_ptr() as *mut u8, INITIAL_CAP) };
 
     if code != 0 {
         return Err(PluginError::from_code(code));
@@ -448,7 +652,13 @@ pub fn result_text(content: &str) {
 pub fn result_key_value(title: &str, pairs: &[(&str, &str)]) {
     let pairs_json: Vec<String> = pairs
         .iter()
-        .map(|(k, v)| format!(r#"{{"key":"{}","value":"{}"}}"#, escape_json(k), escape_json(v)))
+        .map(|(k, v)| {
+            format!(
+                r#"{{"key":"{}","value":"{}"}}"#,
+                escape_json(k),
+                escape_json(v)
+            )
+        })
         .collect();
     let json = format!(
         r#"{{"type":"key_value","title":"{}","pairs":[{}]}}"#,
@@ -465,11 +675,17 @@ pub fn result_key_value(title: &str, pairs: &[(&str, &str)]) {
 /// result_table(&["字段", "值"], &[vec!["街道", "长安街1号"], vec!["城市", "北京"]]);
 /// ```
 pub fn result_table(headers: &[&str], rows: &[Vec<&str>]) {
-    let headers_json: Vec<String> = headers.iter().map(|h| format!("\"{}\"", escape_json(h))).collect();
+    let headers_json: Vec<String> = headers
+        .iter()
+        .map(|h| format!("\"{}\"", escape_json(h)))
+        .collect();
     let rows_json: Vec<String> = rows
         .iter()
         .map(|row| {
-            let cells: Vec<String> = row.iter().map(|c| format!("\"{}\"", escape_json(c))).collect();
+            let cells: Vec<String> = row
+                .iter()
+                .map(|c| format!("\"{}\"", escape_json(c)))
+                .collect();
             format!("[{}]", cells.join(","))
         })
         .collect();
@@ -488,8 +704,30 @@ pub fn result_table(headers: &[&str], rows: &[Vec<&str>]) {
 /// result_markdown("**地址**：长安街1号");
 /// ```
 pub fn result_markdown(content: &str) {
-    let json = format!(r#"{{"type":"markdown","content":"{}"}}"#, escape_json(content));
+    let json = format!(
+        r#"{{"type":"markdown","content":"{}"}}"#,
+        escape_json(content)
+    );
     let _ = send_result_json(&json);
+}
+
+/// 从 little-endian 字节缓冲区读取 u16
+fn read_u16(buf: &[MaybeUninit<u8>; 2]) -> u16 {
+    let bytes = [unsafe { buf[0].assume_init() }, unsafe {
+        buf[1].assume_init()
+    }];
+    u16::from_le_bytes(bytes)
+}
+
+/// 从 little-endian 字节缓冲区读取 u32
+fn read_u32(buf: &[MaybeUninit<u8>; 4]) -> u32 {
+    let bytes = [
+        unsafe { buf[0].assume_init() },
+        unsafe { buf[1].assume_init() },
+        unsafe { buf[2].assume_init() },
+        unsafe { buf[3].assume_init() },
+    ];
+    u32::from_le_bytes(bytes)
 }
 
 /// 简单的 JSON 字符串转义（处理双引号和反斜杠）
