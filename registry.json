@@ -1,6 +1,6 @@
 {
   "version": "1",
-  "updated_at": "2026-06-18T21:23:29Z",
+  "updated_at": "2026-06-18T21:26:34Z",
   "plugins": {
     "com.solosoul.official.address-fmt": {
       "name": "Address Formatter",
@@ -128,7 +128,7 @@
       "versions": {
         "1.0.2": {
           "sha256": "7cfc149ad364d80af3b3f7681d8bac05ac2ba5e03e77e6509e25c79cd0d47093",
-          "plugin_api_version": "1.0",
+          "plugin_api_version": "1.1",
           "min_app_version": "1.0.0",
           "max_app_version": "999.999.999",
           "download_url": "https://cdn.jsdelivr.net/gh/Gczmy/SoloSoul_plugin_market@main/plugins/com.solosoul.official.contact-exporter/plugin.wasm",
@@ -150,6 +150,58 @@
       "homepage": "https://github.com/Gczmy/SoloSoul_plugin_market/tree/main/plugins/com.solosoul.official.contact-exporter",
       "tier": "p0",
       "category": "exporter",
+      "contracts": [
+        {
+          "typeId": "com.solosoul.contact/exporter/v1",
+          "version": 1
+        }
+      ],
+      "field_bindings": [
+        {
+          "contractTypeId": "com.solosoul.contact/exporter/v1",
+          "propertyId": "fullName"
+        },
+        {
+          "contractTypeId": "com.solosoul.contact/exporter/v1",
+          "propertyId": "email"
+        },
+        {
+          "contractTypeId": "com.solosoul.contact/exporter/v1",
+          "propertyId": "phone"
+        },
+        {
+          "contractTypeId": "com.solosoul.contact/exporter/v1",
+          "propertyId": "website"
+        },
+        {
+          "contractTypeId": "com.solosoul.contact/exporter/v1",
+          "propertyId": "title"
+        },
+        {
+          "contractTypeId": "com.solosoul.contact/exporter/v1",
+          "propertyId": "organization"
+        },
+        {
+          "contractTypeId": "com.solosoul.contact/exporter/v1",
+          "propertyId": "street"
+        },
+        {
+          "contractTypeId": "com.solosoul.contact/exporter/v1",
+          "propertyId": "city"
+        },
+        {
+          "contractTypeId": "com.solosoul.contact/exporter/v1",
+          "propertyId": "state"
+        },
+        {
+          "contractTypeId": "com.solosoul.contact/exporter/v1",
+          "propertyId": "postalCode"
+        },
+        {
+          "contractTypeId": "com.solosoul.contact/exporter/v1",
+          "propertyId": "country"
+        }
+      ],
       "i18n": {
         "zh": {
           "name": "联系人导出",
@@ -593,7 +645,7 @@
       "versions": {
         "1.0.1": {
           "sha256": "64b911abcb33a4f7d8048abc13c655ebc0c45d512a0b8ba81c758951b7fbc20f",
-          "plugin_api_version": "1.0",
+          "plugin_api_version": "1.1",
           "min_app_version": "1.0.0",
           "max_app_version": "999.999.999",
           "download_url": "https://cdn.jsdelivr.net/gh/Gczmy/SoloSoul_plugin_market@main/plugins/com.solosoul.official.identity-timeline/plugin.wasm",
@@ -615,6 +667,58 @@
       "homepage": "https://github.com/Gczmy/SoloSoul_plugin_market/tree/main/plugins/com.solosoul.official.identity-timeline",
       "tier": "p0",
       "category": "report",
+      "contracts": [
+        {
+          "typeId": "com.solosoul.identity/timeline/v1",
+          "version": 1
+        }
+      ],
+      "field_bindings": [
+        {
+          "contractTypeId": "com.solosoul.identity/timeline/v1",
+          "propertyId": "fullName"
+        },
+        {
+          "contractTypeId": "com.solosoul.identity/timeline/v1",
+          "propertyId": "dateOfBirth"
+        },
+        {
+          "contractTypeId": "com.solosoul.identity/timeline/v1",
+          "propertyId": "institution"
+        },
+        {
+          "contractTypeId": "com.solosoul.identity/timeline/v1",
+          "propertyId": "degree"
+        },
+        {
+          "contractTypeId": "com.solosoul.identity/timeline/v1",
+          "propertyId": "year"
+        },
+        {
+          "contractTypeId": "com.solosoul.identity/timeline/v1",
+          "propertyId": "company"
+        },
+        {
+          "contractTypeId": "com.solosoul.identity/timeline/v1",
+          "propertyId": "position"
+        },
+        {
+          "contractTypeId": "com.solosoul.identity/timeline/v1",
+          "propertyId": "startDate"
+        },
+        {
+          "contractTypeId": "com.solosoul.identity/timeline/v1",
+          "propertyId": "issueDate"
+        },
+        {
+          "contractTypeId": "com.solosoul.identity/timeline/v1",
+          "propertyId": "expiryDate"
+        },
+        {
+          "contractTypeId": "com.solosoul.identity/timeline/v1",
+          "propertyId": "type"
+        }
+      ],
       "i18n": {
         "zh": {
           "name": "身份时间线",
@@ -1024,7 +1128,7 @@
       "versions": {
         "1.0.2": {
           "sha256": "4c0a2941a36d963c853b2205f5f48a5a2baa47f2030f12a2dbba1b48f2efc9dd",
-          "plugin_api_version": "1.0",
+          "plugin_api_version": "1.1",
           "min_app_version": "1.0.0",
           "max_app_version": "999.999.999",
           "download_url": "https://cdn.jsdelivr.net/gh/Gczmy/SoloSoul_plugin_market@main/plugins/com.solosoul.official.travel-footprint/plugin.wasm",
@@ -1055,6 +1159,22 @@
       "homepage": "https://github.com/Gczmy/SoloSoul_plugin_market/tree/main/plugins/com.solosoul.official.travel-footprint",
       "tier": "p0",
       "category": "report",
+      "contracts": [
+        {
+          "typeId": "com.solosoul.travel/footprint/v1",
+          "version": 1
+        }
+      ],
+      "field_bindings": [
+        {
+          "contractTypeId": "com.solosoul.travel/footprint/v1",
+          "propertyId": "visitedCountries"
+        },
+        {
+          "contractTypeId": "com.solosoul.travel/footprint/v1",
+          "propertyId": "nationality"
+        }
+      ],
       "i18n": {
         "zh": {
           "name": "旅行足迹",

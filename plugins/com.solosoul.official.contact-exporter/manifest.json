@@ -2,7 +2,7 @@
   "plugin_id": "com.solosoul.official.contact-exporter",
   "name": "Contact Exporter",
   "version": "1.0.2",
-  "plugin_api_version": "1.0",
+  "plugin_api_version": "1.1",
   "min_app_version": "1.0.0",
   "max_app_version": "999.999.999",
   "description": "联系人导出器 — 将 Vault 中的个人联系信息导出为 CSV 格式",
@@ -28,6 +28,25 @@
   },
   "data_ttl_seconds": 60,
   "require_user_confirmation": false,
+  "contracts": [
+    {
+      "typeId": "com.solosoul.contact/exporter/v1",
+      "version": 1
+    }
+  ],
+  "field_bindings": [
+    { "contractTypeId": "com.solosoul.contact/exporter/v1", "propertyId": "fullName" },
+    { "contractTypeId": "com.solosoul.contact/exporter/v1", "propertyId": "email" },
+    { "contractTypeId": "com.solosoul.contact/exporter/v1", "propertyId": "phone" },
+    { "contractTypeId": "com.solosoul.contact/exporter/v1", "propertyId": "website" },
+    { "contractTypeId": "com.solosoul.contact/exporter/v1", "propertyId": "title" },
+    { "contractTypeId": "com.solosoul.contact/exporter/v1", "propertyId": "organization" },
+    { "contractTypeId": "com.solosoul.contact/exporter/v1", "propertyId": "street" },
+    { "contractTypeId": "com.solosoul.contact/exporter/v1", "propertyId": "city" },
+    { "contractTypeId": "com.solosoul.contact/exporter/v1", "propertyId": "state" },
+    { "contractTypeId": "com.solosoul.contact/exporter/v1", "propertyId": "postalCode" },
+    { "contractTypeId": "com.solosoul.contact/exporter/v1", "propertyId": "country" }
+  ],
   "i18n": {
     "zh": {
       "name": "联系人导出",

@@ -2,7 +2,7 @@
   "plugin_id": "com.solosoul.official.travel-footprint",
   "name": "Travel Footprint",
   "version": "1.0.2",
-  "plugin_api_version": "1.0",
+  "plugin_api_version": "1.1",
   "min_app_version": "1.0.0",
   "max_app_version": "999.999.999",
   "description": "旅行足迹分析 — 统计到访国家、按大洲分类、生成旅行报告",
@@ -20,6 +20,16 @@
   },
   "data_ttl_seconds": 60,
   "require_user_confirmation": false,
+  "contracts": [
+    {
+      "typeId": "com.solosoul.travel/footprint/v1",
+      "version": 1
+    }
+  ],
+  "field_bindings": [
+    { "contractTypeId": "com.solosoul.travel/footprint/v1", "propertyId": "visitedCountries" },
+    { "contractTypeId": "com.solosoul.travel/footprint/v1", "propertyId": "nationality" }
+  ],
   "i18n": {
     "zh": {
       "name": "旅行足迹",

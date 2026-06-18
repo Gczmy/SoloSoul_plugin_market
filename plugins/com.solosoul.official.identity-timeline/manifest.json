@@ -2,7 +2,7 @@
   "plugin_id": "com.solosoul.official.identity-timeline",
   "name": "Identity Timeline",
   "version": "1.0.1",
-  "plugin_api_version": "1.0",
+  "plugin_api_version": "1.1",
   "min_app_version": "1.0.0",
   "max_app_version": "999.999.999",
   "description": "身份时间线 — 按时间顺序展示教育、工作、证件等人生里程碑",
@@ -28,6 +28,25 @@
   },
   "data_ttl_seconds": 60,
   "require_user_confirmation": false,
+  "contracts": [
+    {
+      "typeId": "com.solosoul.identity/timeline/v1",
+      "version": 1
+    }
+  ],
+  "field_bindings": [
+    { "contractTypeId": "com.solosoul.identity/timeline/v1", "propertyId": "fullName" },
+    { "contractTypeId": "com.solosoul.identity/timeline/v1", "propertyId": "dateOfBirth" },
+    { "contractTypeId": "com.solosoul.identity/timeline/v1", "propertyId": "institution" },
+    { "contractTypeId": "com.solosoul.identity/timeline/v1", "propertyId": "degree" },
+    { "contractTypeId": "com.solosoul.identity/timeline/v1", "propertyId": "year" },
+    { "contractTypeId": "com.solosoul.identity/timeline/v1", "propertyId": "company" },
+    { "contractTypeId": "com.solosoul.identity/timeline/v1", "propertyId": "position" },
+    { "contractTypeId": "com.solosoul.identity/timeline/v1", "propertyId": "startDate" },
+    { "contractTypeId": "com.solosoul.identity/timeline/v1", "propertyId": "issueDate" },
+    { "contractTypeId": "com.solosoul.identity/timeline/v1", "propertyId": "expiryDate" },
+    { "contractTypeId": "com.solosoul.identity/timeline/v1", "propertyId": "type" }
+  ],
   "i18n": {
     "zh": {
       "name": "身份时间线",
