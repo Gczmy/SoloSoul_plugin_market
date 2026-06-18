@@ -2,7 +2,7 @@
   "plugin_id": "com.solosoul.official.expiry-guardian",
   "name": "Expiry Guardian",
   "version": "1.0.1",
-  "plugin_api_version": "1.0",
+  "plugin_api_version": "1.1",
   "min_app_version": "1.0.0",
   "max_app_version": "999.999.999",
   "description": "证件到期卫士 — 扫描所有证件有效期并预警",
@@ -21,6 +21,15 @@
   },
   "data_ttl_seconds": 60,
   "require_user_confirmation": false,
+  "contracts": [
+    {
+      "typeId": "com.solosoul.expiry/guardian/v1",
+      "version": 1
+    }
+  ],
+  "field_bindings": [
+    { "contractTypeId": "com.solosoul.expiry/guardian/v1", "propertyId": "expiryDate" }
+  ],
   "i18n": {
     "zh": {
       "name": "到期卫士",

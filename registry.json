@@ -1,6 +1,6 @@
 {
   "version": "1",
-  "updated_at": "2026-06-18T21:26:34Z",
+  "updated_at": "2026-06-18T21:28:05Z",
   "plugins": {
     "com.solosoul.official.address-fmt": {
       "name": "Address Formatter",
@@ -434,7 +434,7 @@
       "versions": {
         "1.0.1": {
           "sha256": "c0d3917c1eb98aa47953752e8c74b5a4c713a38624c663c6c26a07d49bd9561d",
-          "plugin_api_version": "1.0",
+          "plugin_api_version": "1.1",
           "min_app_version": "1.0.0",
           "max_app_version": "999.999.999",
           "download_url": "https://cdn.jsdelivr.net/gh/Gczmy/SoloSoul_plugin_market@main/plugins/com.solosoul.official.expiry-guardian/plugin.wasm",
@@ -456,6 +456,18 @@
       "homepage": "https://github.com/Gczmy/SoloSoul_plugin_market/tree/main/plugins/com.solosoul.official.expiry-guardian",
       "tier": "p0",
       "category": "reminder",
+      "contracts": [
+        {
+          "typeId": "com.solosoul.expiry/guardian/v1",
+          "version": 1
+        }
+      ],
+      "field_bindings": [
+        {
+          "contractTypeId": "com.solosoul.expiry/guardian/v1",
+          "propertyId": "expiryDate"
+        }
+      ],
       "i18n": {
         "zh": {
           "name": "到期卫士",
@@ -1039,7 +1051,7 @@
       "versions": {
         "1.0.1": {
           "sha256": "dfd712d102e13dfccf6bcf9843786a826573db20ee8014b741d39a688532b359",
-          "plugin_api_version": "1.0",
+          "plugin_api_version": "1.1",
           "min_app_version": "1.0.0",
           "max_app_version": "999.999.999",
           "download_url": "https://cdn.jsdelivr.net/gh/Gczmy/SoloSoul_plugin_market@main/plugins/com.solosoul.official.tax-profile/plugin.wasm",
@@ -1061,6 +1073,50 @@
       "homepage": "https://github.com/Gczmy/SoloSoul_plugin_market/tree/main/plugins/com.solosoul.official.tax-profile",
       "tier": "p2",
       "category": "report",
+      "contracts": [
+        {
+          "typeId": "com.solosoul.tax/profile/v1",
+          "version": 1
+        }
+      ],
+      "field_bindings": [
+        {
+          "contractTypeId": "com.solosoul.tax/profile/v1",
+          "propertyId": "country"
+        },
+        {
+          "contractTypeId": "com.solosoul.tax/profile/v1",
+          "propertyId": "number"
+        },
+        {
+          "contractTypeId": "com.solosoul.tax/profile/v1",
+          "propertyId": "company"
+        },
+        {
+          "contractTypeId": "com.solosoul.tax/profile/v1",
+          "propertyId": "position"
+        },
+        {
+          "contractTypeId": "com.solosoul.tax/profile/v1",
+          "propertyId": "incomeSource"
+        },
+        {
+          "contractTypeId": "com.solosoul.tax/profile/v1",
+          "propertyId": "fullName"
+        },
+        {
+          "contractTypeId": "com.solosoul.tax/profile/v1",
+          "propertyId": "dateOfBirth"
+        },
+        {
+          "contractTypeId": "com.solosoul.tax/profile/v1",
+          "propertyId": "street"
+        },
+        {
+          "contractTypeId": "com.solosoul.tax/profile/v1",
+          "propertyId": "city"
+        }
+      ],
       "i18n": {
         "zh": {
           "name": "税务档案",
@@ -1079,7 +1135,7 @@
       "versions": {
         "1.0.2": {
           "sha256": "8a70925af2a5fd79d356b28c88a0b7baa9fb31e1ea1ee0d02df32aa55c9c2ae5",
-          "plugin_api_version": "1.0",
+          "plugin_api_version": "1.1",
           "min_app_version": "1.0.0",
           "max_app_version": "999.999.999",
           "download_url": "https://cdn.jsdelivr.net/gh/Gczmy/SoloSoul_plugin_market@main/plugins/com.solosoul.official.totp-gen/plugin.wasm",
@@ -1110,6 +1166,26 @@
       "homepage": "https://github.com/Gczmy/SoloSoul_plugin_market/tree/main/plugins/com.solosoul.official.totp-gen",
       "tier": "p0",
       "category": "generator",
+      "contracts": [
+        {
+          "typeId": "com.solosoul.totp/account/v1",
+          "version": 1
+        }
+      ],
+      "field_bindings": [
+        {
+          "contractTypeId": "com.solosoul.totp/account/v1",
+          "propertyId": "totpSecret"
+        },
+        {
+          "contractTypeId": "com.solosoul.totp/account/v1",
+          "propertyId": "totpIssuer"
+        },
+        {
+          "contractTypeId": "com.solosoul.totp/account/v1",
+          "propertyId": "totpAccount"
+        }
+      ],
       "i18n": {
         "zh": {
           "name": "TOTP 生成器",

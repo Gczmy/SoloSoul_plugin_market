@@ -2,7 +2,7 @@
   "plugin_id": "com.solosoul.official.totp-gen",
   "name": "TOTP Generator",
   "version": "1.0.2",
-  "plugin_api_version": "1.0",
+  "plugin_api_version": "1.1",
   "min_app_version": "1.0.0",
   "max_app_version": "999.999.999",
   "description": "TOTP 生成器 — 基于 Vault 中存储的 2FA Secret 生成 RFC 6238 动态验证码",
@@ -20,6 +20,17 @@
   },
   "data_ttl_seconds": 30,
   "require_user_confirmation": false,
+  "contracts": [
+    {
+      "typeId": "com.solosoul.totp/account/v1",
+      "version": 1
+    }
+  ],
+  "field_bindings": [
+    { "contractTypeId": "com.solosoul.totp/account/v1", "propertyId": "totpSecret" },
+    { "contractTypeId": "com.solosoul.totp/account/v1", "propertyId": "totpIssuer" },
+    { "contractTypeId": "com.solosoul.totp/account/v1", "propertyId": "totpAccount" }
+  ],
   "i18n": {
     "zh": {
       "name": "TOTP 生成器",

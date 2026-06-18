@@ -2,7 +2,7 @@
   "plugin_id": "com.solosoul.official.tax-profile",
   "name": "Tax Profile",
   "version": "1.0.1",
-  "plugin_api_version": "1.0",
+  "plugin_api_version": "1.1",
   "min_app_version": "1.0.0",
   "max_app_version": "999.999.999",
   "description": "税务档案摘要 — 汇总税务居民身份、税号、收入来源等申报基础数据",
@@ -27,6 +27,23 @@
   },
   "data_ttl_seconds": 60,
   "require_user_confirmation": false,
+  "contracts": [
+    {
+      "typeId": "com.solosoul.tax/profile/v1",
+      "version": 1
+    }
+  ],
+  "field_bindings": [
+    { "contractTypeId": "com.solosoul.tax/profile/v1", "propertyId": "country" },
+    { "contractTypeId": "com.solosoul.tax/profile/v1", "propertyId": "number" },
+    { "contractTypeId": "com.solosoul.tax/profile/v1", "propertyId": "company" },
+    { "contractTypeId": "com.solosoul.tax/profile/v1", "propertyId": "position" },
+    { "contractTypeId": "com.solosoul.tax/profile/v1", "propertyId": "incomeSource" },
+    { "contractTypeId": "com.solosoul.tax/profile/v1", "propertyId": "fullName" },
+    { "contractTypeId": "com.solosoul.tax/profile/v1", "propertyId": "dateOfBirth" },
+    { "contractTypeId": "com.solosoul.tax/profile/v1", "propertyId": "street" },
+    { "contractTypeId": "com.solosoul.tax/profile/v1", "propertyId": "city" }
+  ],
   "i18n": {
     "zh": {
       "name": "税务档案",
