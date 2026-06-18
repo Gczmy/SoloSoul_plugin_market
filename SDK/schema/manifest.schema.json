@@ -37,7 +37,7 @@
       "type": "string",
       "description": "插件 ABI 版本，与主软件严格匹配",
       "pattern": "^(0|[1-9]\\d*)\\.(0|[1-9]\\d*)$",
-      "examples": ["1.0"]
+      "examples": ["1.0", "1.1"]
     },
     "min_app_version": {
       "type": "string",
@@ -128,6 +128,59 @@
       "minimum": 1,
       "maximum": 168,
       "default": 24
+    },
+    "contracts": {
+      "type": "array",
+      "description": "插件服务的契约类型。Stage 4 typed-lookup 的入口锚点。",
+      "items": {
+        "type": "object",
+        "required": ["typeId"],
+        "properties": {
+          "typeId": {
+            "type": "string",
+            "description": "反向域名+主版本，匹配 UserTemplate.contract_type_id",
+            "pattern": "^[a-z][a-z0-9_.-]*/v[0-9]+$",
+            "examples": ["com.solosoul.address/v1"]
+          },
+          "version": {
+            "type": "integer",
+            "description": "契约主版本号（描述性，host 不强制 gate）",
+            "minimum": 1,
+            "default": 1
+          },
+          "displayName": {
+            "type": "string",
+            "description": "UI 显示名",
+            "maxLength": 64
+          }
+        }
+      }
+    },
+    "field_bindings": {
+      "type": "array",
+      "description": "插件显式需要的 contract 字段。typed-lookup 时 host 验证访问权限。",
+      "items": {
+        "type": "object",
+        "required": ["contractTypeId", "propertyId"],
+        "properties": {
+          "contractTypeId": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9_.-]*/v[0-9]+$"
+          },
+          "propertyId": {
+            "type": "string",
+            "description": "UserTemplate.properties[].id"
+          },
+          "abiName": {
+            "type": "string",
+            "description": "Wasm 侧的 getter 名字，如 'address.get_country'"
+          },
+          "sensitivity": {
+            "type": "string",
+            "enum": ["public", "internal", "sensitive", "critical"]
+          }
+        }
+      }
     }
   },
   "additionalProperties": false

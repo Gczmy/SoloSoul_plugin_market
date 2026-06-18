@@ -92,6 +92,13 @@ def scan_plugins(owner: str, repo: str, branch: str) -> dict:
                 "tier": manifest.get("tier", "p3"),
                 "category": manifest.get("category", "utility"),
             }
+            # 转发 contracts/field_bindings（Stage 4 typed-lookup）
+            contracts = manifest.get("contracts")
+            if contracts:
+                plugins[plugin_id]["contracts"] = contracts
+            field_bindings = manifest.get("field_bindings")
+            if field_bindings:
+                plugins[plugin_id]["field_bindings"] = field_bindings
             # 提取多语言信息
             i18n = manifest.get("i18n")
             if i18n:
