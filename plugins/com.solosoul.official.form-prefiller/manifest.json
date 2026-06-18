@@ -2,7 +2,7 @@
   "plugin_id": "com.solosoul.official.form-prefiller",
   "name": "Form Prefiller",
   "version": "1.0.3",
-  "plugin_api_version": "1.0",
+  "plugin_api_version": "1.1",
   "min_app_version": "1.0.0",
   "max_app_version": "999.999.999",
   "description": "表单预填助手 — 根据签证/酒店/银行/航空等场景生成 Vault 字段映射表",
@@ -35,6 +35,28 @@
   },
   "data_ttl_seconds": 60,
   "require_user_confirmation": false,
+  "contracts": [
+    {
+      "typeId": "com.solosoul.forms/prefill/v1",
+      "version": 1
+    }
+  ],
+  "field_bindings": [
+    { "contractTypeId": "com.solosoul.forms/prefill/v1", "propertyId": "full_name" },
+    { "contractTypeId": "com.solosoul.forms/prefill/v1", "propertyId": "date_of_birth" },
+    { "contractTypeId": "com.solosoul.forms/prefill/v1", "propertyId": "nationality" },
+    { "contractTypeId": "com.solosoul.forms/prefill/v1", "propertyId": "gender" },
+    { "contractTypeId": "com.solosoul.forms/prefill/v1", "propertyId": "number" },
+    { "contractTypeId": "com.solosoul.forms/prefill/v1", "propertyId": "email" },
+    { "contractTypeId": "com.solosoul.forms/prefill/v1", "propertyId": "phone" },
+    { "contractTypeId": "com.solosoul.forms/prefill/v1", "propertyId": "street" },
+    { "contractTypeId": "com.solosoul.forms/prefill/v1", "propertyId": "city" },
+    { "contractTypeId": "com.solosoul.forms/prefill/v1", "propertyId": "state" },
+    { "contractTypeId": "com.solosoul.forms/prefill/v1", "propertyId": "postalCode" },
+    { "contractTypeId": "com.solosoul.forms/prefill/v1", "propertyId": "country" },
+    { "contractTypeId": "com.solosoul.forms/prefill/v1", "propertyId": "company" },
+    { "contractTypeId": "com.solosoul.forms/prefill/v1", "propertyId": "position" }
+  ],
   "i18n": {
     "zh": {
       "name": "表单预填",

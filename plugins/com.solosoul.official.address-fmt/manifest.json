@@ -2,7 +2,7 @@
   "plugin_id": "com.solosoul.official.address-fmt",
   "name": "Address Formatter",
   "version": "1.0.4",
-  "plugin_api_version": "1.0",
+  "plugin_api_version": "1.1",
   "min_app_version": "1.0.0",
   "max_app_version": "999.999.999",
   "description": "地址格式化器 — 按目标国家/地区规范格式化 Vault 中的所有地址（中/美/英/日/德等）",
@@ -19,6 +19,22 @@
     "address.country"
   ],
   "optional_fields": [],
+  "contracts": [
+    {
+      "typeId": "com.solosoul.address/v1",
+      "version": 1,
+      "typeIdAliases": ["address"]
+    }
+  ],
+  "field_bindings": [
+    { "contractTypeId": "com.solosoul.address/v1", "propertyId": "title" },
+    { "contractTypeId": "com.solosoul.address/v1", "propertyId": "street" },
+    { "contractTypeId": "com.solosoul.address/v1", "propertyId": "district" },
+    { "contractTypeId": "com.solosoul.address/v1", "propertyId": "city" },
+    { "contractTypeId": "com.solosoul.address/v1", "propertyId": "state" },
+    { "contractTypeId": "com.solosoul.address/v1", "propertyId": "postalCode" },
+    { "contractTypeId": "com.solosoul.address/v1", "propertyId": "country" }
+  ],
   "network_policy": {
     "block_all_outbound": true
   },
