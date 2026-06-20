@@ -12,8 +12,7 @@
     "travel.visitedCountries"
   ],
   "optional_fields": [
-    "passport.nationality",
-    "visa.count"
+    "passport.nationality"
   ],
   "network_policy": {
     "block_all_outbound": true

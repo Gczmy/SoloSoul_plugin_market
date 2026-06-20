@@ -10,6 +10,30 @@ use std::mem::MaybeUninit;
 // ============================================================================
 
 extern "C" {
+    /// 列出指定类型的所有对象（Phase 5）
+    ///
+    /// 返回 JSON 数组，每个元素包含 id、name、properties。
+    /// 插件应在本地完成计数和属性提取，不再需要 .count 字段。
+    ///
+    /// # 参数
+    /// - `type_id_ptr`: 类型 ID UTF-8 字节指针（如 "address"）
+    /// - `type_id_len`: 类型 ID 长度
+    /// - `out_ptr`: 输出缓冲区指针
+    /// - `out_cap`: 输出缓冲区容量
+    ///
+    /// # 返回值
+    /// - `0`: 成功
+    /// - `-1`: Vault 未解锁
+    /// - `-4`: 缓冲区不足
+    /// - `-5`: 非法类型
+    /// - `-11`: 非法参数
+    fn solosoul_list_objects(
+        type_id_ptr: *const u8,
+        type_id_len: usize,
+        out_ptr: *mut u8,
+        out_cap: usize,
+    ) -> i32;
+
     /// 请求用户字段数据
     ///
     /// # 参数
@@ -190,6 +214,43 @@ extern "C" {
         out_ptr: *mut u8,
         out_cap: usize,
     ) -> i32;
+
+    /// 获取运行参数
+    ///
+    /// # 参数
+    /// - `key_ptr`: 参数键 UTF-8 字节指针
+    /// - `key_len`: 键长度
+    /// - `out_ptr`: 输出缓冲区指针
+    /// - `out_cap`: 输出缓冲区容量
+    /// - `written_ptr`: 实际写入长度（u32 little-endian）指针，可为 null
+    ///
+    /// # 返回值
+    /// - `0`: 成功
+    /// - `-4`: 缓冲区不足
+    /// - `-11`: 非法参数
+    fn solosoul_get_param(
+        key_ptr: *const u8,
+        key_len: usize,
+        out_ptr: *mut u8,
+        out_cap: usize,
+        written_ptr: i32,
+    ) -> i32;
+
+    /// 获取当前系统 locale
+    ///
+    /// # 参数
+    /// - `out_ptr`: 输出缓冲区指针
+    /// - `out_cap`: 输出缓冲区容量
+    /// - `written_ptr`: 实际写入长度（u32 little-endian）指针，-1 表示不回写
+    ///
+    /// # 返回值
+    /// - `0`: 成功
+    /// - `-4`: 缓冲区不足
+    fn solosoul_get_locale(
+        out_ptr: *mut u8,
+        out_cap: usize,
+        written_ptr: i32,
+    ) -> i32;
 }
 
 // ============================================================================
@@ -238,6 +299,62 @@ impl PluginError {
             _ => PluginError::Unknown,
         }
     }
+}
+
+/// 列出指定类型的所有对象
+///
+/// 返回 JSON 数组字符串，每个元素包含：
+/// - `id`: 对象 ID
+/// - `name`: 对象名称
+/// - `properties`: 对象属性 JSON 对象
+///
+/// 插件应在本地完成计数和属性提取（如 `objects.len()` 替代 `.count`）。
+///
+/// # 示例
+/// ```ignore
+/// let json = list_objects("address").expect("列出地址失败");
+/// let objects: Vec<serde_json::Value> = serde_json::from_str(&json).unwrap();
+/// let count = objects.len();
+/// for obj in &objects {
+///     let name = obj["name"].as_str().unwrap_or("");
+///     let street = obj["properties"]["street"].as_str().unwrap_or("");
+/// }
+/// ```
+pub fn list_objects(type_id: &str) -> Result<String, PluginError> {
+    const INITIAL_CAP: usize = 65536;
+    let mut buf: [MaybeUninit<u8>; INITIAL_CAP] = [MaybeUninit::uninit(); INITIAL_CAP];
+
+    let code = unsafe {
+        solosoul_list_objects(
+            type_id.as_ptr(),
+            type_id.len(),
+            buf.as_mut_ptr() as *mut u8,
+            INITIAL_CAP,
+        )
+    };
+
+    if code != 0 {
+        return Err(PluginError::from_code(code));
+    }
+
+    // 查找 null terminator
+    let len = unsafe {
+        let mut end = INITIAL_CAP;
+        for (i, b) in buf.iter().enumerate() {
+            if unsafe { b.assume_init() } == 0 {
+                end = i;
+                break;
+            }
+        }
+        end
+    };
+
+    let bytes: Vec<u8> = buf[..len]
+        .iter()
+        .map(|b| unsafe { b.assume_init() })
+        .collect();
+
+    String::from_utf8(bytes).map_err(|_| PluginError::Unknown)
 }
 
 /// 请求用户字段数据
@@ -502,6 +619,95 @@ pub fn log_error(message: &str) {
 /// debug 级别日志
 pub fn log_debug(message: &str) {
     log("debug", message);
+}
+
+/// 获取运行参数
+///
+/// 插件运行前由 Host 注入的参数（如 locale、user_preference 等）。
+/// 若 key 不存在，返回空字符串。
+///
+/// # 示例
+/// ```ignore
+/// let locale = get_param("locale").unwrap_or_default();
+/// ```
+pub fn get_param(key: &str) -> Result<String, PluginError> {
+    const INITIAL_CAP: usize = 4096;
+    let mut buf: [MaybeUninit<u8>; INITIAL_CAP] = [MaybeUninit::uninit(); INITIAL_CAP];
+
+    let code = unsafe {
+        solosoul_get_param(
+            key.as_ptr(),
+            key.len(),
+            buf.as_mut_ptr() as *mut u8,
+            INITIAL_CAP,
+            -1,
+        )
+    };
+
+    if code != 0 {
+        return Err(PluginError::from_code(code));
+    }
+
+    let len = unsafe {
+        let mut end = INITIAL_CAP;
+        for (i, b) in buf.iter().enumerate() {
+            if unsafe { b.assume_init() } == 0 {
+                end = i;
+                break;
+            }
+        }
+        end
+    };
+
+    let bytes: Vec<u8> = buf[..len]
+        .iter()
+        .map(|b| unsafe { b.assume_init() })
+        .collect();
+
+    String::from_utf8(bytes).map_err(|_| PluginError::Unknown)
+}
+
+/// 获取当前系统 locale
+///
+/// 返回类似 "zh-CN"、"en-US" 的字符串。
+///
+/// # 示例
+/// ```ignore
+/// let locale = get_locale().unwrap_or_else(|_| "en".to_string());
+/// ```
+pub fn get_locale() -> Result<String, PluginError> {
+    const INITIAL_CAP: usize = 64;
+    let mut buf: [MaybeUninit<u8>; INITIAL_CAP] = [MaybeUninit::uninit(); INITIAL_CAP];
+
+    let code = unsafe {
+        solosoul_get_locale(
+            buf.as_mut_ptr() as *mut u8,
+            INITIAL_CAP,
+            -1,
+        )
+    };
+
+    if code != 0 {
+        return Err(PluginError::from_code(code));
+    }
+
+    let len = unsafe {
+        let mut end = INITIAL_CAP;
+        for (i, b) in buf.iter().enumerate() {
+            if unsafe { b.assume_init() } == 0 {
+                end = i;
+                break;
+            }
+        }
+        end
+    };
+
+    let bytes: Vec<u8> = buf[..len]
+        .iter()
+        .map(|b| unsafe { b.assume_init() })
+        .collect();
+
+    String::from_utf8(bytes).map_err(|_| PluginError::Unknown)
 }
 
 /// 获取 Unix 时间戳（毫秒）

@@ -1,20 +1,29 @@
 {
   "version": "1",
-  "updated_at": "2026-06-18T21:28:05Z",
+  "updated_at": "2026-06-20T20:36:00Z",
   "plugins": {
     "com.solosoul.official.address-fmt": {
       "name": "Address Formatter",
       "publisher": "SoloSoul Official",
-      "latest_version": "1.0.4",
+      "latest_version": "1.0.5",
       "versions": {
-        "1.0.4": {
-          "sha256": "893dd6172e2b6a67f419c3d4ef7d9ac673c97ac8e0367b3434335e49e6c1ede5",
+        "1.0.5": {
+          "sha256": "b2f110dfebc3c52ec4c96fbea74dedbfe8cbdb4da5bdc46a1e1258dc9b6dc3e9",
           "plugin_api_version": "1.1",
           "min_app_version": "1.0.0",
           "max_app_version": "999.999.999",
           "download_url": "https://cdn.jsdelivr.net/gh/Gczmy/SoloSoul_plugin_market@main/plugins/com.solosoul.official.address-fmt/plugin.wasm",
           "raw_url": "https://raw.githubusercontent.com/Gczmy/SoloSoul_plugin_market/main/plugins/com.solosoul.official.address-fmt/plugin.wasm",
-          "released_at": "2026-05-27T22:56:39Z"
+          "released_at": "2026-06-20T21:30:00Z"
+        },
+        "1.0.4": {
+          "sha256": "0bbdb8ee68f121526903f70ce24c83259cf9eebc5c6978b98dde53f533a57616",
+          "plugin_api_version": "1.1",
+          "min_app_version": "1.0.0",
+          "max_app_version": "999.999.999",
+          "download_url": "https://cdn.jsdelivr.net/gh/Gczmy/SoloSoul_plugin_market@main/plugins/com.solosoul.official.address-fmt/plugin.wasm",
+          "raw_url": "https://raw.githubusercontent.com/Gczmy/SoloSoul_plugin_market/main/plugins/com.solosoul.official.address-fmt/plugin.wasm",
+          "released_at": "2026-06-20T14:48:00Z"
         },
         "1.0.3": {
           "sha256": "893dd6172e2b6a67f419c3d4ef7d9ac673c97ac8e0367b3434335e49e6c1ede5",
@@ -33,7 +42,7 @@
       "category": "formatter",
       "contracts": [
         {
-          "typeId": "com.solosoul.address/v1",
+          "typeId": "com.solosoul.official.address-fmt/v1",
           "version": 1,
           "typeIdAliases": [
             "address"
@@ -42,31 +51,27 @@
       ],
       "field_bindings": [
         {
-          "contractTypeId": "com.solosoul.address/v1",
-          "propertyId": "title"
-        },
-        {
-          "contractTypeId": "com.solosoul.address/v1",
+          "contractTypeId": "com.solosoul.official.address-fmt/v1",
           "propertyId": "street"
         },
         {
-          "contractTypeId": "com.solosoul.address/v1",
+          "contractTypeId": "com.solosoul.official.address-fmt/v1",
           "propertyId": "district"
         },
         {
-          "contractTypeId": "com.solosoul.address/v1",
+          "contractTypeId": "com.solosoul.official.address-fmt/v1",
           "propertyId": "city"
         },
         {
-          "contractTypeId": "com.solosoul.address/v1",
+          "contractTypeId": "com.solosoul.official.address-fmt/v1",
           "propertyId": "state"
         },
         {
-          "contractTypeId": "com.solosoul.address/v1",
+          "contractTypeId": "com.solosoul.official.address-fmt/v1",
           "propertyId": "postalCode"
         },
         {
-          "contractTypeId": "com.solosoul.address/v1",
+          "contractTypeId": "com.solosoul.official.address-fmt/v1",
           "propertyId": "country"
         }
       ],
@@ -1203,13 +1208,13 @@
       "latest_version": "1.0.2",
       "versions": {
         "1.0.2": {
-          "sha256": "4c0a2941a36d963c853b2205f5f48a5a2baa47f2030f12a2dbba1b48f2efc9dd",
+          "sha256": "513201f5e807a7fefb36ef594a6fedf0e2a83fe4245f0b211387ae7c840c75b3",
           "plugin_api_version": "1.1",
           "min_app_version": "1.0.0",
           "max_app_version": "999.999.999",
           "download_url": "https://cdn.jsdelivr.net/gh/Gczmy/SoloSoul_plugin_market@main/plugins/com.solosoul.official.travel-footprint/plugin.wasm",
           "raw_url": "https://raw.githubusercontent.com/Gczmy/SoloSoul_plugin_market/main/plugins/com.solosoul.official.travel-footprint/plugin.wasm",
-          "released_at": "2026-05-31T00:53:52Z"
+          "released_at": "2026-06-20T20:36:00Z"
         },
         "1.0.1": {
           "sha256": "c58c93efb1d6b24e81f70398bbc80805a20c654a13c55f8c24c06dfeb1366029",

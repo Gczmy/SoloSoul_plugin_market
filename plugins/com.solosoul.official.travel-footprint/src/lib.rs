@@ -4,7 +4,7 @@
 //! 分析 Vault 中的旅行记录，生成到访国家统计和分类报告。
 
 #[cfg(not(test))]
-use solosoul_plugin_sdk::{get_field, log_error, log_info, send_result_json};
+use solosoul_plugin_sdk::{get_field, list_objects, log_error, log_info, send_result_json};
 
 /// 国家到大洲的简化映射表
 fn country_to_continent(country: &str) -> &'static str {
@@ -223,7 +223,11 @@ pub extern "C" fn run() -> i32 {
     };
 
     let nationality = get_field("passport.nationality").unwrap_or_default();
-    let visa_count = get_field("visa.count").unwrap_or_default();
+    let visa_count = list_objects("visa")
+        .ok()
+        .and_then(|j| serde_json::from_str::<Vec<serde_json::Value>>(&j).ok())
+        .map(|v| v.len().to_string())
+        .unwrap_or_default();
 
     let report = analyze_travel(&countries, &nationality, &visa_count);
     for line in report.lines() {

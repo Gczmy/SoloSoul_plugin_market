@@ -1,7 +1,7 @@
 {
   "plugin_id": "com.solosoul.official.address-fmt",
   "name": "Address Formatter",
-  "version": "1.0.4",
+  "version": "1.0.5",
   "plugin_api_version": "1.1",
   "min_app_version": "1.0.0",
   "max_app_version": "999.999.999",
@@ -9,8 +9,6 @@
   "publisher": "SoloSoul Official",
   "homepage": "https://github.com/Gczmy/SoloSoul_plugin_market/tree/main/plugins/com.solosoul.official.address-fmt",
   "required_fields": [
-    "address.count",
-    "address.title",
     "address.street",
     "address.district",
     "address.city",
@@ -21,19 +19,18 @@
   "optional_fields": [],
   "contracts": [
     {
-      "typeId": "com.solosoul.address/v1",
+      "typeId": "com.solosoul.official.address-fmt/v1",
       "version": 1,
       "typeIdAliases": ["address"]
     }
   ],
   "field_bindings": [
-    { "contractTypeId": "com.solosoul.address/v1", "propertyId": "title" },
-    { "contractTypeId": "com.solosoul.address/v1", "propertyId": "street" },
-    { "contractTypeId": "com.solosoul.address/v1", "propertyId": "district" },
-    { "contractTypeId": "com.solosoul.address/v1", "propertyId": "city" },
-    { "contractTypeId": "com.solosoul.address/v1", "propertyId": "state" },
-    { "contractTypeId": "com.solosoul.address/v1", "propertyId": "postalCode" },
-    { "contractTypeId": "com.solosoul.address/v1", "propertyId": "country" }
+    { "contractTypeId": "com.solosoul.official.address-fmt/v1", "propertyId": "street" },
+    { "contractTypeId": "com.solosoul.official.address-fmt/v1", "propertyId": "district" },
+    { "contractTypeId": "com.solosoul.official.address-fmt/v1", "propertyId": "city" },
+    { "contractTypeId": "com.solosoul.official.address-fmt/v1", "propertyId": "state" },
+    { "contractTypeId": "com.solosoul.official.address-fmt/v1", "propertyId": "postalCode" },
+    { "contractTypeId": "com.solosoul.official.address-fmt/v1", "propertyId": "country" }
   ],
   "network_policy": {
     "block_all_outbound": true
