@@ -1,6 +1,6 @@
 {
   "version": "1",
-  "updated_at": "2026-06-28T20:47:38Z",
+  "updated_at": "2026-06-28T21:42:52Z",
   "plugins": {
     "com.solosoul.official.address-fmt": {
       "name": "Address Formatter",
@@ -1273,13 +1273,13 @@
       "latest_version": "1.0.0",
       "versions": {
         "1.0.0": {
-          "sha256": "4022fa6319f9603b4d30c80aeb334c0f7f982a3933edae955d14f59fd94e5877",
+          "sha256": "ad9ef08f4f2f15a41f55b48a7d7b86e2350db3e908f9e2b3c8231dbcac0c4465",
           "plugin_api_version": "1.1",
           "min_app_version": "2.5.0",
           "max_app_version": "999.999.999",
           "download_url": "https://cdn.jsdelivr.net/gh/Gczmy/SoloSoul_plugin_market@main/plugins/com.solosoul.official.watermark/plugin.wasm",
           "raw_url": "https://raw.githubusercontent.com/Gczmy/SoloSoul_plugin_market/main/plugins/com.solosoul.official.watermark/plugin.wasm",
-          "released_at": "2026-06-28T20:36:37Z"
+          "released_at": "2026-06-28T21:42:52Z"
         }
       },
       "description": "为 Vault 中的图片/PDF 附件批量添加文本水印，所有修改仅作用于副本，不影响原始附件。",
