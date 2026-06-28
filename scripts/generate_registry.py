@@ -103,6 +103,10 @@ def scan_plugins(owner: str, repo: str, branch: str) -> dict:
             i18n = manifest.get("i18n")
             if i18n:
                 plugins[plugin_id]["i18n"] = i18n
+            # 提取自定义 UI 标识
+            custom_ui = manifest.get("custom_ui")
+            if custom_ui:
+                plugins[plugin_id]["custom_ui"] = custom_ui
 
         # 版本号比较，更新 latest_version
         existing_versions = plugins[plugin_id]["versions"]

@@ -251,6 +251,61 @@ extern "C" {
         out_cap: usize,
         written_ptr: i32,
     ) -> i32;
+
+    /// 列出所有可用于水印的附件（图片/PDF），按页面 → 对象分组。
+    ///
+    /// 返回 JSON 字符串：{ "pages": [ { "pageId", "pageName", "objects": [ ... ] } ] }
+    fn solosoul_list_attachments(out_ptr: *mut u8, out_cap: usize) -> i32;
+
+    /// 将 Vault 内指定附件复制到插件临时工作区，返回副本绝对路径。
+    fn solosoul_prepare_attachment_copy(
+        object_id_ptr: *const u8,
+        object_id_len: usize,
+        attachment_id_ptr: *const u8,
+        attachment_id_len: usize,
+        out_path_ptr: *mut u8,
+        out_path_cap: usize,
+    ) -> i32;
+
+    /// 为图片文件添加文本水印。
+    fn solosoul_image_watermark(
+        input_path_ptr: *const u8,
+        input_path_len: usize,
+        output_path_ptr: *const u8,
+        output_path_len: usize,
+        config_json_ptr: *const u8,
+        config_json_len: usize,
+    ) -> i32;
+
+    /// 为 PDF 文件添加文本水印。
+    fn solosoul_pdf_watermark(
+        input_path_ptr: *const u8,
+        input_path_len: usize,
+        output_path_ptr: *const u8,
+        output_path_len: usize,
+        config_json_ptr: *const u8,
+        config_json_len: usize,
+    ) -> i32;
+
+    /// 将字节写入运行参数 `outputDir` 指定的输出目录，返回写入后的绝对路径。
+    fn solosoul_write_output_file(
+        file_name_ptr: *const u8,
+        file_name_len: usize,
+        bytes_ptr: *const u8,
+        bytes_len: usize,
+        out_path_ptr: *mut u8,
+        out_path_cap: usize,
+    ) -> i32;
+
+    /// 将工作区中的已处理文件复制到运行参数 `outputDir` 指定的输出目录，返回最终绝对路径。
+    fn solosoul_copy_output_file(
+        src_path_ptr: *const u8,
+        src_path_len: usize,
+        file_name_ptr: *const u8,
+        file_name_len: usize,
+        out_path_ptr: *mut u8,
+        out_path_cap: usize,
+    ) -> i32;
 }
 
 // ============================================================================
@@ -611,6 +666,11 @@ pub fn log_info(message: &str) {
     log("info", message);
 }
 
+/// warn 级别日志
+pub fn log_warn(message: &str) {
+    log("warn", message);
+}
+
 /// error 级别日志
 pub fn log_error(message: &str) {
     log("error", message);
@@ -818,6 +878,261 @@ pub fn get_data_structure_tree() -> Result<String, PluginError> {
         .collect();
 
     String::from_utf8(bytes).map_err(|_| PluginError::Unknown)
+}
+
+// ============================================================================
+// 附件与水印 Host Functions
+// ============================================================================
+
+/// 水印位置
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
+pub enum WatermarkPosition {
+    #[default]
+    Center,
+    TopLeft,
+    TopRight,
+    BottomLeft,
+    BottomRight,
+    Tile,
+}
+
+impl WatermarkPosition {
+    fn as_str(&self) -> &'static str {
+        match self {
+            WatermarkPosition::Center => "center",
+            WatermarkPosition::TopLeft => "topLeft",
+            WatermarkPosition::TopRight => "topRight",
+            WatermarkPosition::BottomLeft => "bottomLeft",
+            WatermarkPosition::BottomRight => "bottomRight",
+            WatermarkPosition::Tile => "tile",
+        }
+    }
+}
+
+/// 水印配置（插件侧构造后序列化为 JSON 传给 Host）
+pub struct WatermarkConfig {
+    pub text: String,
+    pub font_size: f32,
+    pub color: [u8; 3],
+    pub opacity: f32,
+    pub angle: f32,
+    pub position: WatermarkPosition,
+    pub tile: bool,
+    pub margin_x: i32,
+    pub margin_y: i32,
+}
+
+impl Default for WatermarkConfig {
+    fn default() -> Self {
+        Self {
+            text: "SoloSoul".to_string(),
+            font_size: 72.0,
+            color: [128, 128, 128],
+            opacity: 0.3,
+            angle: -45.0,
+            position: WatermarkPosition::Center,
+            tile: false,
+            margin_x: 0,
+            margin_y: 0,
+        }
+    }
+}
+
+impl WatermarkConfig {
+    /// 将配置序列化为 JSON 字符串（插件无需引入 serde 即可使用）
+    pub fn to_json(&self) -> String {
+        format!(
+            r#"{{"text":"{}","fontSize":{},"color":[{},{},{}],"opacity":{},"angle":{},"position":"{}","tile":{},"marginX":{},"marginY":{}}}"#,
+            escape_json(&self.text),
+            self.font_size,
+            self.color[0],
+            self.color[1],
+            self.color[2],
+            self.opacity,
+            self.angle,
+            self.position.as_str(),
+            self.tile,
+            self.margin_x,
+            self.margin_y
+        )
+    }
+}
+
+/// 列出所有可用于水印的附件，返回 JSON 字符串。
+///
+/// 返回结构：
+/// ```json
+/// { "pages": [
+///     { "pageId": "...", "pageName": "...", "objects": [
+///         { "objectId": "...", "objectName": "...", "attachments": [
+///             { "id": "...", "objectId": "...", "fileName": "...", "mimeType": "...", "sizeBytes": 0 }
+///         ]}
+///     ]}
+/// ]}
+/// ```
+pub fn list_attachments() -> Result<String, PluginError> {
+    read_string_from_host(|ptr, cap| unsafe { solosoul_list_attachments(ptr, cap) })
+}
+
+/// 将指定附件从 Vault 复制到插件临时工作区，返回副本绝对路径。
+pub fn prepare_attachment_copy(object_id: &str, attachment_id: &str) -> Result<String, PluginError> {
+    const INITIAL_CAP: usize = 4096;
+    let mut buf: [MaybeUninit<u8>; INITIAL_CAP] = [MaybeUninit::uninit(); INITIAL_CAP];
+
+    let code = unsafe {
+        solosoul_prepare_attachment_copy(
+            object_id.as_ptr(),
+            object_id.len(),
+            attachment_id.as_ptr(),
+            attachment_id.len(),
+            buf.as_mut_ptr() as *mut u8,
+            INITIAL_CAP,
+        )
+    };
+
+    if code != 0 {
+        return Err(PluginError::from_code(code));
+    }
+
+    let len = find_null_terminator(&buf);
+    let bytes: Vec<u8> = buf[..len]
+        .iter()
+        .map(|b| unsafe { b.assume_init() })
+        .collect();
+    String::from_utf8(bytes).map_err(|_| PluginError::Unknown)
+}
+
+/// 为图片文件添加水印。
+pub fn image_watermark(
+    input_path: &str,
+    output_path: &str,
+    config: &WatermarkConfig,
+) -> Result<(), PluginError> {
+    let config_json = config.to_json();
+    let code = unsafe {
+        solosoul_image_watermark(
+            input_path.as_ptr(),
+            input_path.len(),
+            output_path.as_ptr(),
+            output_path.len(),
+            config_json.as_ptr(),
+            config_json.len(),
+        )
+    };
+    if code == 0 {
+        Ok(())
+    } else {
+        Err(PluginError::from_code(code))
+    }
+}
+
+/// 为 PDF 文件添加水印。
+pub fn pdf_watermark(
+    input_path: &str,
+    output_path: &str,
+    config: &WatermarkConfig,
+) -> Result<(), PluginError> {
+    let config_json = config.to_json();
+    let code = unsafe {
+        solosoul_pdf_watermark(
+            input_path.as_ptr(),
+            input_path.len(),
+            output_path.as_ptr(),
+            output_path.len(),
+            config_json.as_ptr(),
+            config_json.len(),
+        )
+    };
+    if code == 0 {
+        Ok(())
+    } else {
+        Err(PluginError::from_code(code))
+    }
+}
+
+/// 将字节写入运行参数 `outputDir` 指定的输出目录，返回写入后的绝对路径。
+pub fn write_output_file(file_name: &str, bytes: &[u8]) -> Result<String, PluginError> {
+    const INITIAL_CAP: usize = 4096;
+    let mut buf: [MaybeUninit<u8>; INITIAL_CAP] = [MaybeUninit::uninit(); INITIAL_CAP];
+
+    let code = unsafe {
+        solosoul_write_output_file(
+            file_name.as_ptr(),
+            file_name.len(),
+            bytes.as_ptr(),
+            bytes.len(),
+            buf.as_mut_ptr() as *mut u8,
+            INITIAL_CAP,
+        )
+    };
+
+    if code != 0 {
+        return Err(PluginError::from_code(code));
+    }
+
+    let len = find_null_terminator(&buf);
+    let out_bytes: Vec<u8> = buf[..len]
+        .iter()
+        .map(|b| unsafe { b.assume_init() })
+        .collect();
+    String::from_utf8(out_bytes).map_err(|_| PluginError::Unknown)
+}
+
+/// 将工作区中的已处理文件复制到运行参数 `outputDir` 指定的输出目录，返回最终绝对路径。
+pub fn copy_output_file(src_path: &str, file_name: &str) -> Result<String, PluginError> {
+    const INITIAL_CAP: usize = 4096;
+    let mut buf: [MaybeUninit<u8>; INITIAL_CAP] = [MaybeUninit::uninit(); INITIAL_CAP];
+
+    let code = unsafe {
+        solosoul_copy_output_file(
+            src_path.as_ptr(),
+            src_path.len(),
+            file_name.as_ptr(),
+            file_name.len(),
+            buf.as_mut_ptr() as *mut u8,
+            INITIAL_CAP,
+        )
+    };
+
+    if code != 0 {
+        return Err(PluginError::from_code(code));
+    }
+
+    let len = find_null_terminator(&buf);
+    let out_bytes: Vec<u8> = buf[..len]
+        .iter()
+        .map(|b| unsafe { b.assume_init() })
+        .collect();
+    String::from_utf8(out_bytes).map_err(|_| PluginError::Unknown)
+}
+
+/// 通用：调用返回字符串的 Host Function。
+fn read_string_from_host<F>(call: F) -> Result<String, PluginError>
+where
+    F: FnOnce(*mut u8, usize) -> i32,
+{
+    const INITIAL_CAP: usize = 64 * 1024;
+    let mut buf: [MaybeUninit<u8>; INITIAL_CAP] = [MaybeUninit::uninit(); INITIAL_CAP];
+    let code = call(buf.as_mut_ptr() as *mut u8, INITIAL_CAP);
+    if code != 0 {
+        return Err(PluginError::from_code(code));
+    }
+    let len = find_null_terminator(&buf);
+    let bytes: Vec<u8> = buf[..len]
+        .iter()
+        .map(|b| unsafe { b.assume_init() })
+        .collect();
+    String::from_utf8(bytes).map_err(|_| PluginError::Unknown)
+}
+
+/// 在 MaybeUninit 缓冲区中查找第一个 \0，未找到则返回容量。
+fn find_null_terminator(buf: &[MaybeUninit<u8>]) -> usize {
+    for (i, b) in buf.iter().enumerate() {
+        if unsafe { b.assume_init() } == 0 {
+            return i;
+        }
+    }
+    buf.len()
 }
 
 // ============================================================================
