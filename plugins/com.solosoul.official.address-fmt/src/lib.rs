@@ -4,7 +4,7 @@
 //! 通过 SDK `list_objects()` 批量获取 Vault 中的所有地址对象，
 //! 在插件内部完成计数和属性提取。不再使用 .count 字段。
 
-use solosoul_plugin_sdk::{get_param, list_objects, log_error, log_info, send_result_json};
+use solosoul_plugin_sdk::{get_param, list_objects, log_error, log_info, send_result_json, escape_json};
 
 /// 国际化文本表
 struct I18n {
@@ -457,23 +457,7 @@ pub extern "C" fn run() -> i32 {
 }
 
 /// JSON 字符串转义（处理所有标准转义字符）
-fn escape_json(s: &str) -> String {
-    let mut result = String::with_capacity(s.len());
-    for ch in s.chars() {
-        match ch {
-            '\\' => result.push_str("\\\\"),
-            '"' => result.push_str("\\\""),
-            '\n' => result.push_str("\\n"),
-            '\r' => result.push_str("\\r"),
-            '\t' => result.push_str("\\t"),
-            '\u{0008}' => result.push_str("\\b"),
-            '\u{000C}' => result.push_str("\\f"),
-            c if c < '\u{0020}' => result.push_str(&format!("\\u{:04x}", c as u32)),
-            c => result.push(c),
-        }
-    }
-    result
-}
+
 
 // ============================================================================
 // 单元测试

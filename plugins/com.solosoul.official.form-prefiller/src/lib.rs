@@ -4,7 +4,8 @@
 //! 根据常见表单场景生成 Vault 字段映射表，显示哪些字段已就绪/缺失。
 
 #[cfg(not(test))]
-use solosoul_plugin_sdk::{get_field, log_error, log_info, send_result_json, show_dialog, PluginError};
+use solosoul_plugin_sdk::{get_field, log_error, log_info, send_result_json, show_dialog, PluginError, truncate};
+use solosoul_plugin_sdk::{escape_json};
 
 /// 表单字段映射
 struct FieldMapping {
@@ -220,33 +221,10 @@ fn generate_report(scenario: &FormScenario, results: &[(String, String, bool)]) 
     lines.join("\n")
 }
 
-fn truncate(s: &str, max_len: usize) -> String {
-    let chars: Vec<char> = s.chars().collect();
-    if chars.len() <= max_len {
-        s.to_string()
-    } else {
-        chars[..max_len].iter().collect::<String>() + "..."
-    }
-}
+
 
 /// 简单的 JSON 字符串转义
-fn escape_json(s: &str) -> String {
-    let mut result = String::with_capacity(s.len());
-    for ch in s.chars() {
-        match ch {
-            '\\' => result.push_str("\\\\"),
-            '"' => result.push_str("\\\""),
-            '\n' => result.push_str("\\n"),
-            '\r' => result.push_str("\\r"),
-            '\t' => result.push_str("\\t"),
-            '\u{0008}' => result.push_str("\\b"),
-            '\u{000C}' => result.push_str("\\f"),
-            c if c < '\u{0020}' => result.push_str(&format!("\\u{:04x}", c as u32)),
-            c => result.push(c),
-        }
-    }
-    result
-}
+
 
 #[cfg(not(test))]
 #[no_mangle]

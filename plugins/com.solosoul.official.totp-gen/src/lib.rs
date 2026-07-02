@@ -5,7 +5,7 @@
 
 use hmac::{Hmac, Mac};
 use sha1::Sha1;
-use solosoul_plugin_sdk::{get_field, get_timestamp, log_error, log_info, send_result_json};
+use solosoul_plugin_sdk::{get_field, get_timestamp, log_error, log_info, send_result_json, escape_json};
 
 /// HMAC-SHA1 类型别名
 type HmacSha1 = Hmac<Sha1>;
@@ -101,23 +101,7 @@ fn format_otp(otp: u32, digits: u32) -> String {
 }
 
 /// 简单的 JSON 字符串转义
-fn escape_json(s: &str) -> String {
-    let mut result = String::with_capacity(s.len());
-    for ch in s.chars() {
-        match ch {
-            '\\' => result.push_str("\\\\"),
-            '"' => result.push_str("\\\""),
-            '\n' => result.push_str("\\n"),
-            '\r' => result.push_str("\\r"),
-            '\t' => result.push_str("\\t"),
-            '\u{0008}' => result.push_str("\\b"),
-            '\u{000C}' => result.push_str("\\f"),
-            c if c < '\u{0020}' => result.push_str(&format!("\\u{:04x}", c as u32)),
-            c => result.push(c),
-        }
-    }
-    result
-}
+
 
 /// 插件入口
 #[no_mangle]

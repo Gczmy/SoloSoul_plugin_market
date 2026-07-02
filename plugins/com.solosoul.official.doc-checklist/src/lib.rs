@@ -4,7 +4,8 @@
 //! 根据目标场景检查 Vault 中已有/缺失的材料。
 
 #[cfg(not(test))]
-use solosoul_plugin_sdk::{get_field, log_error, log_info, send_result_json, show_dialog, PluginError};
+use solosoul_plugin_sdk::{get_field, log_error, log_info, send_result_json, show_dialog, PluginError, truncate};
+use solosoul_plugin_sdk::{escape_json};
 
 /// 材料项
 struct DocItem {
@@ -172,33 +173,10 @@ fn generate_report(scenario: &Scenario, results: &[(String, bool)]) -> String {
     lines.join("\n")
 }
 
-fn truncate(s: &str, max_len: usize) -> String {
-    let chars: Vec<char> = s.chars().collect();
-    if chars.len() <= max_len {
-        s.to_string()
-    } else {
-        chars[..max_len].iter().collect::<String>() + "..."
-    }
-}
+
 
 /// 简单的 JSON 字符串转义
-fn escape_json(s: &str) -> String {
-    let mut result = String::with_capacity(s.len());
-    for ch in s.chars() {
-        match ch {
-            '\\' => result.push_str("\\\\"),
-            '"' => result.push_str("\\\""),
-            '\n' => result.push_str("\\n"),
-            '\r' => result.push_str("\\r"),
-            '\t' => result.push_str("\\t"),
-            '\u{0008}' => result.push_str("\\b"),
-            '\u{000C}' => result.push_str("\\f"),
-            c if c < '\u{0020}' => result.push_str(&format!("\\u{:04x}", c as u32)),
-            c => result.push(c),
-        }
-    }
-    result
-}
+
 
 /// 解析对话框返回的 JSON 结果
 fn parse_dialog_result(json_str: &str) -> String {

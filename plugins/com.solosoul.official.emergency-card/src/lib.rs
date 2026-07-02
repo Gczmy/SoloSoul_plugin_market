@@ -3,8 +3,7 @@
 //! 纯本地插件，零网络依赖。
 //! 生成紧急情况下使用的医疗/联系信息卡片。
 
-use solosoul_plugin_sdk::{get_field, log_error, log_info, send_result_json};
-
+use solosoul_plugin_sdk::{get_field, log_error, log_info, send_result_json, escape_json, truncate};
 /// 安全读取字段
 fn read_field(path: &str) -> String {
     get_field(path).unwrap_or_default().trim().to_string()
@@ -99,34 +98,10 @@ fn generate_card(data: &EmergencyData) -> String {
     lines.join("\n")
 }
 
-/// 截断字符串到指定长度（按字符数）
-fn truncate(s: &str, max_len: usize) -> String {
-    let chars: Vec<char> = s.chars().collect();
-    if chars.len() <= max_len {
-        s.to_string()
-    } else {
-        chars[..max_len].iter().collect::<String>() + "..."
-    }
-}
+
 
 /// 简单的 JSON 字符串转义
-fn escape_json(s: &str) -> String {
-    let mut result = String::with_capacity(s.len());
-    for ch in s.chars() {
-        match ch {
-            '\\' => result.push_str("\\\\"),
-            '"' => result.push_str("\\\""),
-            '\n' => result.push_str("\\n"),
-            '\r' => result.push_str("\\r"),
-            '\t' => result.push_str("\\t"),
-            '\u{0008}' => result.push_str("\\b"),
-            '\u{000C}' => result.push_str("\\f"),
-            c if c < '\u{0020}' => result.push_str(&format!("\\u{:04x}", c as u32)),
-            c => result.push(c),
-        }
-    }
-    result
-}
+
 
 /// 插件入口
 #[no_mangle]

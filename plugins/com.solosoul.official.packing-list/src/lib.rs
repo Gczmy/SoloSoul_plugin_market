@@ -4,7 +4,8 @@
 //! 根据目的地和季节智能推荐旅行打包清单。
 
 #[cfg(not(test))]
-use solosoul_plugin_sdk::{get_field, log_info, send_result_json};
+use solosoul_plugin_sdk::{get_field, log_info, send_result_json, truncate};
+use solosoul_plugin_sdk::{escape_json};
 
 /// 行李项类别
 struct PackingCategory {
@@ -193,32 +194,9 @@ fn format_output(destination: &str, categories: &[PackingCategory]) -> String {
 }
 
 /// 简单的 JSON 字符串转义
-fn escape_json(s: &str) -> String {
-    let mut result = String::with_capacity(s.len());
-    for ch in s.chars() {
-        match ch {
-            '\\' => result.push_str("\\\\"),
-            '"' => result.push_str("\\\""),
-            '\n' => result.push_str("\\n"),
-            '\r' => result.push_str("\\r"),
-            '\t' => result.push_str("\\t"),
-            '\u{0008}' => result.push_str("\\b"),
-            '\u{000C}' => result.push_str("\\f"),
-            c if c < '\u{0020}' => result.push_str(&format!("\\u{:04x}", c as u32)),
-            c => result.push(c),
-        }
-    }
-    result
-}
 
-fn truncate(s: &str, max_len: usize) -> String {
-    let chars: Vec<char> = s.chars().collect();
-    if chars.len() <= max_len {
-        s.to_string()
-    } else {
-        chars[..max_len].iter().collect::<String>() + "..."
-    }
-}
+
+
 
 #[cfg(not(test))]
 #[no_mangle]

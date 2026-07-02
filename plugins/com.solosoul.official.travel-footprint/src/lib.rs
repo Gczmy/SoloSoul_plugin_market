@@ -4,7 +4,8 @@
 //! 分析 Vault 中的旅行记录，生成到访国家统计和分类报告。
 
 #[cfg(not(test))]
-use solosoul_plugin_sdk::{get_field, list_objects, log_error, log_info, send_result_json};
+use solosoul_plugin_sdk::{get_field, list_objects, log_error, log_info, send_result_json, truncate};
+use solosoul_plugin_sdk::{escape_json};
 
 /// 国家到大洲的简化映射表
 fn country_to_continent(country: &str) -> &'static str {
@@ -164,14 +165,7 @@ fn analyze_travel(countries_str: &str, nationality: &str, visa_count: &str) -> S
 }
 
 /// 截断字符串
-fn truncate(s: &str, max_len: usize) -> String {
-    let chars: Vec<char> = s.chars().collect();
-    if chars.len() <= max_len {
-        s.to_string()
-    } else {
-        chars[..max_len].iter().collect::<String>() + "..."
-    }
-}
+
 
 /// 将长字符串分块（按字符数）
 fn chunk_string(s: &str, chunk_size: usize) -> Vec<String> {
@@ -183,23 +177,7 @@ fn chunk_string(s: &str, chunk_size: usize) -> Vec<String> {
 }
 
 /// 简单的 JSON 字符串转义
-fn escape_json(s: &str) -> String {
-    let mut result = String::with_capacity(s.len());
-    for ch in s.chars() {
-        match ch {
-            '\\' => result.push_str("\\\\"),
-            '"' => result.push_str("\\\""),
-            '\n' => result.push_str("\\n"),
-            '\r' => result.push_str("\\r"),
-            '\t' => result.push_str("\\t"),
-            '\u{0008}' => result.push_str("\\b"),
-            '\u{000C}' => result.push_str("\\f"),
-            c if c < '\u{0020}' => result.push_str(&format!("\\u{:04x}", c as u32)),
-            c => result.push(c),
-        }
-    }
-    result
-}
+
 
 #[cfg(not(test))]
 #[no_mangle]

@@ -4,7 +4,8 @@
 //! 扫描 Vault 各分区，计算档案完整度百分比并给出补充建议。
 
 #[cfg(not(test))]
-use solosoul_plugin_sdk::{get_field, log_info, send_result_json};
+use solosoul_plugin_sdk::{get_field, log_info, send_result_json, truncate};
+use solosoul_plugin_sdk::{escape_json};
 
 /// 分区定义
 struct Section {
@@ -126,23 +127,7 @@ fn progress_bar(percentage: u32, width: usize) -> String {
 }
 
 /// 简单的 JSON 字符串转义
-fn escape_json(s: &str) -> String {
-    let mut result = String::with_capacity(s.len());
-    for ch in s.chars() {
-        match ch {
-            '\\' => result.push_str("\\\\"),
-            '"' => result.push_str("\\\""),
-            '\n' => result.push_str("\\n"),
-            '\r' => result.push_str("\\r"),
-            '\t' => result.push_str("\\t"),
-            '\u{0008}' => result.push_str("\\b"),
-            '\u{000C}' => result.push_str("\\f"),
-            c if c < '\u{0020}' => result.push_str(&format!("\\u{:04x}", c as u32)),
-            c => result.push(c),
-        }
-    }
-    result
-}
+
 
 /// 生成分区报告
 fn generate_report(results: &[(String, u32, Vec<String>)]) -> String {
@@ -198,14 +183,7 @@ fn generate_report(results: &[(String, u32, Vec<String>)]) -> String {
     lines.join("\n")
 }
 
-fn truncate(s: &str, max_len: usize) -> String {
-    let chars: Vec<char> = s.chars().collect();
-    if chars.len() <= max_len {
-        s.to_string()
-    } else {
-        chars[..max_len].iter().collect::<String>() + "..."
-    }
-}
+
 
 #[cfg(not(test))]
 #[no_mangle]
