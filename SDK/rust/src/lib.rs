@@ -307,40 +307,9 @@ impl PluginError {
 /// }
 /// ```
 pub fn list_objects(type_id: &str) -> Result<String, PluginError> {
-    const INITIAL_CAP: usize = 65536;
-    let mut buf: [MaybeUninit<u8>; INITIAL_CAP] = [MaybeUninit::uninit(); INITIAL_CAP];
-
-    let code = unsafe {
-        solosoul_list_objects(
-            type_id.as_ptr(),
-            type_id.len(),
-            buf.as_mut_ptr() as *mut u8,
-            INITIAL_CAP,
-        )
-    };
-
-    if code != 0 {
-        return Err(PluginError::from_code(code));
-    }
-
-    // 查找 null terminator
-    let len = unsafe {
-        let mut end = INITIAL_CAP;
-        for (i, b) in buf.iter().enumerate() {
-            if unsafe { b.assume_init() } == 0 {
-                end = i;
-                break;
-            }
-        }
-        end
-    };
-
-    let bytes: Vec<u8> = buf[..len]
-        .iter()
-        .map(|b| unsafe { b.assume_init() })
-        .collect();
-
-    String::from_utf8(bytes).map_err(|_| PluginError::Unknown)
+    read_string_from_host(|ptr, cap| unsafe {
+        solosoul_list_objects(type_id.as_ptr(), type_id.len(), ptr, cap)
+    })
 }
 
 /// 请求用户字段数据
@@ -350,41 +319,9 @@ pub fn list_objects(type_id: &str) -> Result<String, PluginError> {
 /// let name = get_field("identity.full_name").expect("获取姓名失败");
 /// ```
 pub fn get_field(field_id: &str) -> Result<String, PluginError> {
-    const INITIAL_CAP: usize = 4096;
-    let mut buf: [MaybeUninit<u8>; INITIAL_CAP] = [MaybeUninit::uninit(); INITIAL_CAP];
-
-    let code = unsafe {
-        solosoul_request_field(
-            field_id.as_ptr(),
-            field_id.len(),
-            buf.as_mut_ptr() as *mut u8,
-            INITIAL_CAP,
-        )
-    };
-
-    if code != 0 {
-        return Err(PluginError::from_code(code));
-    }
-
-    // 安全：Host 已写入有效 UTF-8 数据
-    let len = unsafe {
-        let mut end = INITIAL_CAP;
-        for (i, b) in buf.iter().enumerate() {
-            if unsafe { b.assume_init() } == 0 {
-                end = i;
-                break;
-            }
-        }
-        end
-    };
-
-    let bytes: Vec<u8> = buf[..len]
-        .iter()
-        .map(|b| unsafe { b.assume_init() })
-        .collect();
-
-    // Host 保证返回 UTF-8，如果解析失败视为 Unknown
-    String::from_utf8(bytes).map_err(|_| PluginError::Unknown)
+    read_string_from_host(|ptr, cap| unsafe {
+        solosoul_request_field(field_id.as_ptr(), field_id.len(), ptr, cap)
+    })
 }
 
 /// 代理 HTTP POST 请求（JSON）
@@ -395,42 +332,9 @@ pub fn get_field(field_id: &str) -> Result<String, PluginError> {
 ///     .expect("网络请求失败");
 /// ```
 pub fn post_json(url: &str, json_body: &str) -> Result<String, PluginError> {
-    const INITIAL_CAP: usize = 65536;
-    let mut buf: [MaybeUninit<u8>; INITIAL_CAP] = [MaybeUninit::uninit(); INITIAL_CAP];
-
-    let code = unsafe {
-        solosoul_post_data(
-            url.as_ptr(),
-            url.len(),
-            json_body.as_ptr(),
-            json_body.len(),
-            buf.as_mut_ptr() as *mut u8,
-            INITIAL_CAP,
-        )
-    };
-
-    if code != 0 {
-        return Err(PluginError::from_code(code));
-    }
-
-    // 查找 null terminator 或完整缓冲区
-    let len = unsafe {
-        let mut end = INITIAL_CAP;
-        for (i, b) in buf.iter().enumerate() {
-            if unsafe { b.assume_init() } == 0 {
-                end = i;
-                break;
-            }
-        }
-        end
-    };
-
-    let bytes: Vec<u8> = buf[..len]
-        .iter()
-        .map(|b| unsafe { b.assume_init() })
-        .collect();
-
-    String::from_utf8(bytes).map_err(|_| PluginError::Unknown)
+    read_string_from_host(|ptr, cap| unsafe {
+        solosoul_post_data(url.as_ptr(), url.len(), json_body.as_ptr(), json_body.len(), ptr, cap)
+    })
 }
 
 /// 同步睡眠（毫秒）
@@ -488,40 +392,9 @@ pub fn log_debug(message: &str) {
 /// let locale = get_param("locale").unwrap_or_default();
 /// ```
 pub fn get_param(key: &str) -> Result<String, PluginError> {
-    const INITIAL_CAP: usize = 4096;
-    let mut buf: [MaybeUninit<u8>; INITIAL_CAP] = [MaybeUninit::uninit(); INITIAL_CAP];
-
-    let code = unsafe {
-        solosoul_get_param(
-            key.as_ptr(),
-            key.len(),
-            buf.as_mut_ptr() as *mut u8,
-            INITIAL_CAP,
-            -1,
-        )
-    };
-
-    if code != 0 {
-        return Err(PluginError::from_code(code));
-    }
-
-    let len = unsafe {
-        let mut end = INITIAL_CAP;
-        for (i, b) in buf.iter().enumerate() {
-            if unsafe { b.assume_init() } == 0 {
-                end = i;
-                break;
-            }
-        }
-        end
-    };
-
-    let bytes: Vec<u8> = buf[..len]
-        .iter()
-        .map(|b| unsafe { b.assume_init() })
-        .collect();
-
-    String::from_utf8(bytes).map_err(|_| PluginError::Unknown)
+    read_string_from_host(|ptr, cap| unsafe {
+        solosoul_get_param(key.as_ptr(), key.len(), ptr, cap, -1)
+    })
 }
 
 /// 获取当前系统 locale
@@ -533,38 +406,7 @@ pub fn get_param(key: &str) -> Result<String, PluginError> {
 /// let locale = get_locale().unwrap_or_else(|_| "en".to_string());
 /// ```
 pub fn get_locale() -> Result<String, PluginError> {
-    const INITIAL_CAP: usize = 64;
-    let mut buf: [MaybeUninit<u8>; INITIAL_CAP] = [MaybeUninit::uninit(); INITIAL_CAP];
-
-    let code = unsafe {
-        solosoul_get_locale(
-            buf.as_mut_ptr() as *mut u8,
-            INITIAL_CAP,
-            -1,
-        )
-    };
-
-    if code != 0 {
-        return Err(PluginError::from_code(code));
-    }
-
-    let len = unsafe {
-        let mut end = INITIAL_CAP;
-        for (i, b) in buf.iter().enumerate() {
-            if unsafe { b.assume_init() } == 0 {
-                end = i;
-                break;
-            }
-        }
-        end
-    };
-
-    let bytes: Vec<u8> = buf[..len]
-        .iter()
-        .map(|b| unsafe { b.assume_init() })
-        .collect();
-
-    String::from_utf8(bytes).map_err(|_| PluginError::Unknown)
+    read_string_from_host(|ptr, cap| unsafe { solosoul_get_locale(ptr, cap, -1) })
 }
 
 /// 获取 Unix 时间戳（毫秒）
@@ -647,34 +489,7 @@ pub fn show_dialog(config_json: &str) -> Result<String, PluginError> {
 /// let tree_json = get_data_structure_tree().expect("获取数据结构失败");
 /// ```
 pub fn get_data_structure_tree() -> Result<String, PluginError> {
-    const INITIAL_CAP: usize = 65536;
-    let mut buf: [MaybeUninit<u8>; INITIAL_CAP] = [MaybeUninit::uninit(); INITIAL_CAP];
-
-    let code =
-        unsafe { solosoul_get_data_structure_tree(buf.as_mut_ptr() as *mut u8, INITIAL_CAP) };
-
-    if code != 0 {
-        return Err(PluginError::from_code(code));
-    }
-
-    // 查找 null terminator
-    let len = unsafe {
-        let mut end = INITIAL_CAP;
-        for (i, b) in buf.iter().enumerate() {
-            if unsafe { b.assume_init() } == 0 {
-                end = i;
-                break;
-            }
-        }
-        end
-    };
-
-    let bytes: Vec<u8> = buf[..len]
-        .iter()
-        .map(|b| unsafe { b.assume_init() })
-        .collect();
-
-    String::from_utf8(bytes).map_err(|_| PluginError::Unknown)
+    read_string_from_host(|ptr, cap| unsafe { solosoul_get_data_structure_tree(ptr, cap) })
 }
 
 // ============================================================================
@@ -773,30 +588,9 @@ pub fn list_attachments() -> Result<String, PluginError> {
 
 /// 将指定附件从 Vault 复制到插件临时工作区，返回副本绝对路径。
 pub fn prepare_attachment_copy(object_id: &str, attachment_id: &str) -> Result<String, PluginError> {
-    const INITIAL_CAP: usize = 4096;
-    let mut buf: [MaybeUninit<u8>; INITIAL_CAP] = [MaybeUninit::uninit(); INITIAL_CAP];
-
-    let code = unsafe {
-        solosoul_prepare_attachment_copy(
-            object_id.as_ptr(),
-            object_id.len(),
-            attachment_id.as_ptr(),
-            attachment_id.len(),
-            buf.as_mut_ptr() as *mut u8,
-            INITIAL_CAP,
-        )
-    };
-
-    if code != 0 {
-        return Err(PluginError::from_code(code));
-    }
-
-    let len = find_null_terminator(&buf);
-    let bytes: Vec<u8> = buf[..len]
-        .iter()
-        .map(|b| unsafe { b.assume_init() })
-        .collect();
-    String::from_utf8(bytes).map_err(|_| PluginError::Unknown)
+    read_string_from_host(|ptr, cap| unsafe {
+        solosoul_prepare_attachment_copy(object_id.as_ptr(), object_id.len(), attachment_id.as_ptr(), attachment_id.len(), ptr, cap)
+    })
 }
 
 /// 为图片文件添加水印。
@@ -849,58 +643,16 @@ pub fn pdf_watermark(
 
 /// 将字节写入运行参数 `outputDir` 指定的输出目录，返回写入后的绝对路径。
 pub fn write_output_file(file_name: &str, bytes: &[u8]) -> Result<String, PluginError> {
-    const INITIAL_CAP: usize = 4096;
-    let mut buf: [MaybeUninit<u8>; INITIAL_CAP] = [MaybeUninit::uninit(); INITIAL_CAP];
-
-    let code = unsafe {
-        solosoul_write_output_file(
-            file_name.as_ptr(),
-            file_name.len(),
-            bytes.as_ptr(),
-            bytes.len(),
-            buf.as_mut_ptr() as *mut u8,
-            INITIAL_CAP,
-        )
-    };
-
-    if code != 0 {
-        return Err(PluginError::from_code(code));
-    }
-
-    let len = find_null_terminator(&buf);
-    let out_bytes: Vec<u8> = buf[..len]
-        .iter()
-        .map(|b| unsafe { b.assume_init() })
-        .collect();
-    String::from_utf8(out_bytes).map_err(|_| PluginError::Unknown)
+    read_string_from_host(|ptr, cap| unsafe {
+        solosoul_write_output_file(file_name.as_ptr(), file_name.len(), bytes.as_ptr(), bytes.len(), ptr, cap)
+    })
 }
 
 /// 将工作区中的已处理文件复制到运行参数 `outputDir` 指定的输出目录，返回最终绝对路径。
 pub fn copy_output_file(src_path: &str, file_name: &str) -> Result<String, PluginError> {
-    const INITIAL_CAP: usize = 4096;
-    let mut buf: [MaybeUninit<u8>; INITIAL_CAP] = [MaybeUninit::uninit(); INITIAL_CAP];
-
-    let code = unsafe {
-        solosoul_copy_output_file(
-            src_path.as_ptr(),
-            src_path.len(),
-            file_name.as_ptr(),
-            file_name.len(),
-            buf.as_mut_ptr() as *mut u8,
-            INITIAL_CAP,
-        )
-    };
-
-    if code != 0 {
-        return Err(PluginError::from_code(code));
-    }
-
-    let len = find_null_terminator(&buf);
-    let out_bytes: Vec<u8> = buf[..len]
-        .iter()
-        .map(|b| unsafe { b.assume_init() })
-        .collect();
-    String::from_utf8(out_bytes).map_err(|_| PluginError::Unknown)
+    read_string_from_host(|ptr, cap| unsafe {
+        solosoul_copy_output_file(src_path.as_ptr(), src_path.len(), file_name.as_ptr(), file_name.len(), ptr, cap)
+    })
 }
 
 /// 通用：调用返回字符串的 Host Function。
