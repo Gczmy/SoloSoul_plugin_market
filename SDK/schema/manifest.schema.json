@@ -152,6 +152,32 @@
             "type": "string",
             "description": "UI 显示名",
             "maxLength": 64
+          },
+          "roles": {
+            "type": "array",
+            "description": "插件契约的输入角色列表，用户可将模板字段映射到这些角色。",
+            "items": {
+              "type": "object",
+              "required": ["roleId"],
+              "properties": {
+                "roleId": {
+                  "type": "string",
+                  "description": "角色标识，如 street"
+                },
+                "label": {
+                  "type": "string",
+                  "description": "显示名"
+                },
+                "required": {
+                  "type": "boolean",
+                  "default": false
+                },
+                "defaultPropertyId": {
+                  "type": "string",
+                  "description": "默认字段 ID（兼容旧版）"
+                }
+              }
+            }
           }
         }
       }

@@ -21,7 +21,15 @@
     {
       "typeId": "com.solosoul.official.address-fmt/v1",
       "version": 1,
-      "typeIdAliases": ["address"]
+      "typeIdAliases": ["address"],
+      "roles": [
+        { "roleId": "street", "label": "街道 / Street", "required": true, "defaultPropertyId": "street" },
+        { "roleId": "district", "label": "区 / District", "required": false, "defaultPropertyId": "district" },
+        { "roleId": "city", "label": "城市 / City", "required": true, "defaultPropertyId": "city" },
+        { "roleId": "state", "label": "州省 / State", "required": false, "defaultPropertyId": "state" },
+        { "roleId": "postalCode", "label": "邮政编码 / Postal Code", "required": false, "defaultPropertyId": "postalCode" },
+        { "roleId": "country", "label": "国家 / Country", "required": true, "defaultPropertyId": "country" }
+      ]
     }
   ],
   "field_bindings": [

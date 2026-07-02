@@ -1,6 +1,6 @@
 {
   "version": "1",
-  "updated_at": "2026-06-28T21:42:52Z",
+  "updated_at": "2026-07-02T09:33:57Z",
   "plugins": {
     "com.solosoul.official.address-fmt": {
       "name": "Address Formatter",
@@ -46,6 +46,44 @@
           "version": 1,
           "typeIdAliases": [
             "address"
+          ],
+          "roles": [
+            {
+              "roleId": "street",
+              "label": "街道 / Street",
+              "required": true,
+              "defaultPropertyId": "street"
+            },
+            {
+              "roleId": "district",
+              "label": "区 / District",
+              "required": false,
+              "defaultPropertyId": "district"
+            },
+            {
+              "roleId": "city",
+              "label": "城市 / City",
+              "required": true,
+              "defaultPropertyId": "city"
+            },
+            {
+              "roleId": "state",
+              "label": "州省 / State",
+              "required": false,
+              "defaultPropertyId": "state"
+            },
+            {
+              "roleId": "postalCode",
+              "label": "邮政编码 / Postal Code",
+              "required": false,
+              "defaultPropertyId": "postalCode"
+            },
+            {
+              "roleId": "country",
+              "label": "国家 / Country",
+              "required": true,
+              "defaultPropertyId": "country"
+            }
           ]
         }
       ],
