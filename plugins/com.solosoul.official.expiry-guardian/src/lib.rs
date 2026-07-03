@@ -5,8 +5,8 @@
 
 use serde::{Deserialize, Serialize};
 use solosoul_plugin_sdk::{
-    days_until_ymd, get_data_structure_tree, get_field, get_locale, list_objects, log_error,
-    log_info, parse_date_yyyymmdd_or_iso, send_result_json,
+    days_until_ymd, get_data_structure_tree, get_locale, list_objects, log_error, log_info,
+    parse_date_yyyymmdd_or_iso, send_result_json,
 };
 
 // ============================================================================
@@ -174,19 +174,14 @@ fn scan_type(alias: &str, type_name: &str) -> Vec<ExpiryItem> {
             .cloned()
             .unwrap_or(serde_json::Value::Null);
 
-        // 通过 typed field 路径读取 expiryDate 角色字段
-        let field_path = format!("{}.expiryDate", alias);
-        let raw_date = match get_field(&field_path) {
-            Ok(v) => v,
-            Err(_) => {
-                // 回退：从 properties 直接取（兼容无 contract gate 场景）
-                props
-                    .get("expiryDate")
-                    .and_then(|v| v.as_str())
-                    .unwrap_or("")
-                    .to_string()
-            }
-        };
+        // 直接从当前对象的 properties 读取 expiryDate，避免通过 get_field
+        // 查询（get_field 返回的是该类型第一个对象的属性值，而非当前迭代的对象）。
+        // 见 field.rs resolve_typed: objects[0].properties
+        let raw_date = props
+            .get("expiryDate")
+            .and_then(|v| v.as_str())
+            .unwrap_or("")
+            .to_string();
 
         if raw_date.is_empty() {
             log_info(&format!("{}: 未填写到期日", name));
