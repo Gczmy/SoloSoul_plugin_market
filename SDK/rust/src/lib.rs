@@ -822,6 +822,63 @@ pub fn truncate(s: &str, max_len: usize) -> String {
 }
 
 // ============================================================================
+// 日期辅助函数
+// ============================================================================
+
+/// 解析 ISO "YYYY-MM-DD" 或 MRZ "YYMMDD" 日期字符串。
+///
+/// 返回 `(year, month, day)`，解析失败返回 `None`。
+///
+/// # 示例
+/// ```ignore
+/// let (y, m, d) = parse_date_yyyymmdd_or_iso("2025-12-31").unwrap();
+/// let (y, m, d) = parse_date_yyyymmdd_or_iso("251231").unwrap();  // → 2025-12-31
+/// ```
+pub fn parse_date_yyyymmdd_or_iso(date_str: &str) -> Option<(i32, u32, u32)> {
+    let s = date_str.trim();
+    if s.len() == 10 && s.as_bytes()[4] == b'-' && s.as_bytes()[7] == b'-' {
+        let year = s[..4].parse().ok()?;
+        let month = s[5..7].parse().ok()?;
+        let day = s[8..10].parse().ok()?;
+        return Some((year, month, day));
+    }
+    if s.len() == 6 && s.chars().all(|c| c.is_ascii_digit()) {
+        let yy: i32 = s[..2].parse().ok()?;
+        let year = if yy >= 50 { 1900 + yy } else { 2000 + yy };
+        let month: u32 = s[2..4].parse().ok()?;
+        let day: u32 = s[4..6].parse().ok()?;
+        return Some((year, month, day));
+    }
+    None
+}
+
+/// 计算目标日期 `(year, month, day)` 距离今天的天数（基于 Unix 时间戳，零依赖）。
+///
+/// # 示例
+/// ```ignore
+/// let days = days_until_ymd(2025, 12, 31).unwrap();
+/// ```
+pub fn days_until_ymd(year: i32, month: u32, day: u32) -> Option<i64> {
+    fn ordinal(y: i32, m: u32, d: u32) -> i64 {
+        let a = (14 - m as i32) / 12;
+        let y_adjusted = y + 4800 - a;
+        let m_adjusted = m as i32 + 12 * a - 3;
+        d as i64
+            + ((153 * m_adjusted + 2) / 5) as i64
+            + 365 * y_adjusted as i64
+            + y_adjusted as i64 / 4
+            - y_adjusted as i64 / 100
+            + y_adjusted as i64 / 400
+            - 32045
+    }
+
+    let now_ms = get_timestamp();
+    let today_ordinal = ordinal(1970, 1, 1) + now_ms / 86400000;
+    let target_ordinal = ordinal(year, month, day);
+    Some(target_ordinal - today_ordinal)
+}
+
+// ============================================================================
 // 辅助类型
 // ============================================================================
 
