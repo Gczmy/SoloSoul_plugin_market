@@ -351,7 +351,7 @@ pub extern "C" fn run() -> i32 {
 | `solosoul_log(...)` | void | 写审计日志 |
 | `solosoul_get_timestamp()` | `i64` | 获取 Unix 时间戳（毫秒） |
 
-完整 ABI 规范见主项目文档：`SoloSoul_code/docs/PLUGIN_SYSTEM_DESIGN.md`
+完整 ABI 规范见主项目文档：https://github.com/Gczmy/SoloSoul/blob/main/docs/plugin_market/03-plugin-sdk.md
 
 ---
 
