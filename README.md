@@ -417,7 +417,7 @@ git push
 
 | 文档 | 位置 | 内容 |
 |------|------|------|
-| 插件系统架构设计（15 篇） | 主项目 [`docs/plugin_market/`](https://github.com/Gczmy/SoloSoul/tree/main/docs/plugin_market) | 数据流、安全机制、生命周期、Host ABI |
+| 插件系统架构文档（3 篇） | 主项目 [`docs/plugin_market/`](https://github.com/Gczmy/SoloSoul/tree/main/docs/plugin_market) | 架构总览、Rust Host 运行时、Tauri 前端 |
 | Wasm 插件开发指南 | 主项目 [`docs/wasm-plugin-development-guide.md`](https://github.com/Gczmy/SoloSoul/blob/main/docs/wasm-plugin-development-guide.md) | ABI 规范、错误码、开发步骤 |
 | 插件创意库 | [`docs/plugin-ideas.md`](docs/plugin-ideas.md) | 待开发插件点子 |
 
