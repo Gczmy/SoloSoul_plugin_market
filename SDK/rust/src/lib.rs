@@ -1,7 +1,7 @@
 //! SoloSoul Plugin SDK — Rust
 //!
 //! 为插件开发者提供类型安全的 Host Functions 绑定。
-//! 插件编译目标：`wasm32-wasi`
+//! 插件编译目标：`wasm32-wasip1`（WASI Preview1）
 
 use std::mem::MaybeUninit;
 

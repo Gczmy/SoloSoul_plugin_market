@@ -5,10 +5,10 @@
 //!
 //! 编译：
 //! ```bash
-//! cargo build --target wasm32-wasi --release
+//! cargo build --target wasm32-wasip1 --release
 //! ```
-//! 产物：`target/wasm32-wasi/release/hello_world.wasm`
-//! 重命名：`cp target/wasm32-wasi/release/hello_world.wasm plugin.wasm`
+//! 产物：`target/wasm32-wasip1/release/hello_world.wasm`
+//! 重命名：`cp target/wasm32-wasip1/release/hello_world.wasm plugin.wasm`
 
 use solosoul_plugin_sdk::{get_timestamp, log_info};
 
