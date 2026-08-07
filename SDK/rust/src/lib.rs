@@ -37,7 +37,7 @@ extern "C" {
     /// 请求用户字段数据
     ///
     /// # 参数
-    /// - `field_id_ptr`: 字段路径 UTF-8 字节指针（如 "identity.full_name"）
+    /// - `field_id_ptr`: 字段路径 UTF-8 字节指针（如 "identity.fullName"）
     /// - `field_id_len`: 字段路径长度
     /// - `out_ptr`: 输出缓冲区指针
     /// - `out_cap`: 输出缓冲区容量
@@ -316,7 +316,7 @@ pub fn list_objects(type_id: &str) -> Result<String, PluginError> {
 ///
 /// # 示例
 /// ```ignore
-/// let name = get_field("identity.full_name").expect("获取姓名失败");
+/// let name = get_field("identity.fullName").expect("获取姓名失败");
 /// ```
 pub fn get_field(field_id: &str) -> Result<String, PluginError> {
     read_string_from_host(|ptr, cap| unsafe {
